@@ -2,3 +2,5 @@
 
 void printWelcomeMsg(char *msg);
 void printMenu();
+
+void selectFunction();
