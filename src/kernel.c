@@ -1,4 +1,5 @@
 #include "./cli/cli.h"
+
 #include "./mailbox/mailbox.h"
 #include "./constant/tag.h"
 #include "./constant/font.h"
@@ -114,11 +115,7 @@ void main()
     // echo everything back
     //view_board_model();
     printWelcomeMsg(hexArray);
-    printWelcomeMsg("\n\nDeveloped by Dinh Minh");
     while(1) {
-        //read each char
-        char c = uart_getc();
-        //send back
-        uart_sendc(c);
+        typeCommand();
     }
 }
