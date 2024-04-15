@@ -1,6 +1,26 @@
 #include "./cli.h"
 
-char *commandLine;
+char commandLine[COMMAND_LINE_SIZE]; // Fixed-size array for the command line
+int commandIndex = 0; // Index to keep track of the current position in commandLine
+
+// Utility function to reset the commandLine buffer
+void resetCommandLine() {
+    for (int i = 0; i < COMMAND_LINE_SIZE; i++) {
+        commandLine[i] = '\0';
+    }
+    commandIndex = 0;
+}
+
+void resetCLI() {
+    for(int i = 0; i < commandIndex;i++) {
+        commandLine[i] = '\0';
+    }
+}
+
+void debugTool() {
+    char *c = "123456";
+    uart_puts(getLength(c));
+}
 
 void printOS(void) {
     uart_puts("\n\nC:/DELL/MInh_OS> ");
@@ -39,18 +59,40 @@ void printMenu() {
 
 }
 
-void selectFunction() {
+void selectFunction(char *s) {
     
 }
 
 int typeCommand() {
-    //read each char
+    // Read each char
     char c = uart_getc();
-    //send back
-    uart_sendc(c);
-    if(c == '\n') {
-        printMenu();
+
+    // Check for buffer overflow
+    if (commandIndex < COMMAND_LINE_SIZE - 1) {
+        commandLine[commandIndex] = c; // Add the character to commandLine and increment index
+        commandIndex++;
+        commandLine[commandIndex] = '\0'; // Null-terminate the string
+    } else {
+        // Handle overflow, for example, by resetting the command line
+        resetCommandLine();
+        uart_puts("\nCommand too long. Please try again.\n");
+        printOS();
+        return 0;
     }
-    commandLine += c;
+
+    // Send back the character (echo)
+    uart_sendc(c);
+
+    // Check for the 'Enter' key and if the command is "help"
+    if (c == '\n') {
+        if (compare(commandLine, "help\n")) {
+            printMenu();
+            resetCLI();
+        } else {
+            printOS(); // Print the prompt again for a new command
+        }
+        resetCommandLine(); // Reset commandLine after processing the command
+    }
+
     return 0;
 }

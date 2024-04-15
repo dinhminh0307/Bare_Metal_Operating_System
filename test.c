@@ -1,4 +1,4 @@
-#include "./system.h"
+#include <stdio.h>
 
 int getLength(char *s) {
     int ctr = 0;
@@ -21,8 +21,14 @@ int compare(char *s, char *target) {
     return *s == '\0' && *target == '\0';
 }
 
-void push(char s[], char c) {
-    if(getLength(s) == 0) {
-        
-    }
+
+int main(void) {
+    char s[100];
+    printf("%d", getLength(s));
+    // if(compare(s, "hello world") == 1) {
+    //     printf("hello world");
+    // }
+    // else {
+    //     printf("vcl");
+    // }
 }
