@@ -22,10 +22,19 @@ int compare(char *s, char *target) {
     return *s == '\0' && *target == '\0';
 }
 
+int containSpace(char *s) {
+    int ctr = 0;
+    while(*s != '\0') {
+        if(*s == ' ') ctr++;
+        s++;
+    }
+    return ctr;
+}
+
 
 int main(void) {
-    char s[100];
-    printf("%d", getLength(s));
+    char *s = "hello world  ";
+    printf("%d", containSpace(s));
     // if(compare(s, "hello world") == 1) {
     //     printf("hello world");
     // }

@@ -31,6 +31,36 @@ void printWelcomeMsg(char *msg) {
     printOS();
 }
 
+void printClearInfor(void) {
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
+    uart_puts("| 2  | clear        | - Clear screen (in our terminal it will scroll down to  |\n");
+    uart_puts("|    |              |   current position of the cursor).                      |\n");
+    uart_puts("|    |              | - Example: MyOS> clear                                  |\n");
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
+     printOS();
+}
+
+void printSetColorCommand(void) {
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
+    uart_puts("| 3  | setcolor     | - Set text color, and/or background color of the        |\n");
+    uart_puts("|    |              |   console to one of the following colors: BLACK, RED,   |\n");
+    uart_puts("|    |              |   GREEN, YELLOW, BLUE, PURPLE, CYAN, WHITE              |\n");
+    uart_puts("|    |              | - Examples:                                             |\n");
+    uart_puts("|    |              |   MyOS> setcolor -t yellow                              |\n");
+    uart_puts("|    |              |   MyOS> setcolor -b yellow -t white                     |\n");
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
+     printOS();
+}
+
+void printShowCommand(void) {
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
+    uart_puts("| 4  | showinfo     | - Show board revision and board MAC address in correct  |\n");
+    uart_puts("|    |              |   format/meaningful information                         |\n");
+    uart_puts("|    |              | - Example: MyOS> showinfo                               |\n");
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
+     printOS();
+}
+
 void printMenu() {
     uart_puts("+----+--------------+---------------------------------------------------------+\n");
     uart_puts("| No.| Command Name | Usage                                                   |\n");
@@ -60,7 +90,19 @@ void printMenu() {
 }
 
 void selectFunction(char *s) {
-    
+    if(matchCommand(s) == 1) {
+        printMenu();
+    }else if(matchCommand(s) == 2) {
+        printClearInfor();
+    } else if(matchCommand(s) == 3) {
+        printSetColorCommand();
+    } else if(matchCommand(s) == 4) {
+        printShowCommand();
+    } else  {
+        printOS(); // Print the prompt again for a new command
+    }
+    resetCLI();
+    resetCommandLine(); // Reset commandLine after processing the command
 }
 
 int typeCommand() {
@@ -77,7 +119,6 @@ int typeCommand() {
         resetCommandLine();
         uart_puts("\nCommand too long. Please try again.\n");
         printOS();
-        return 0;
     }
 
     // Send back the character (echo)
@@ -85,13 +126,7 @@ int typeCommand() {
 
     // Check for the 'Enter' key and if the command is "help"
     if (c == '\n') {
-        if (compare(commandLine, "help\n")) {
-            printMenu();
-            resetCLI();
-        } else {
-            printOS(); // Print the prompt again for a new command
-        }
-        resetCommandLine(); // Reset commandLine after processing the command
+        selectFunction(commandLine);
     }
 
     return 0;

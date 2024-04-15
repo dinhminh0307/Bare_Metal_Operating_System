@@ -1,6 +1,6 @@
 #include "../uart/uart.h"
 #include "../system/system.h"
-#define COMMAND_LINE_SIZE 100
+
 //Variables declaration
 
 void debugTool();
@@ -10,3 +10,6 @@ void printMenu();
 void printOS(void);
 void selectFunction(char *s);
 int typeCommand();
+void printClearInfor(void);
+void printSetColorCommand(void);
+void printShowCommand(void);
