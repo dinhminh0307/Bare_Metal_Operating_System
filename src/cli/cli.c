@@ -58,7 +58,7 @@ void printShowCommand(void) {
     uart_puts("|    |              |   format/meaningful information                         |\n");
     uart_puts("|    |              | - Example: MyOS> showinfo                               |\n");
     uart_puts("+----+--------------+---------------------------------------------------------+\n");
-     printOS();
+    printOS();
 }
 
 void printMenu() {
