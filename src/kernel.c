@@ -115,6 +115,7 @@ void main()
     // echo everything back
     //view_board_model();
     printWelcomeMsg(hexArray);
+    //debugTool();
     while(1) {
         typeCommand();
     }

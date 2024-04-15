@@ -1,10 +1,15 @@
 #include "../uart/uart.h"
+#include "../system/system.h"
 
 //Variables declaration
-extern char *commandLine;
+
+void debugTool();
 
 void printWelcomeMsg(char *msg);
 void printMenu();
 void printOS(void);
-void selectFunction();
+void selectFunction(char *s);
 int typeCommand();
+void printClearInfor(void);
+void printSetColorCommand(void);
+void printShowCommand(void);
