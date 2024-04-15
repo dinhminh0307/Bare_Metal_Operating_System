@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 
 int getLength(char *s) {
