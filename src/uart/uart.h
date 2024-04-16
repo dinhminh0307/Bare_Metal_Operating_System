@@ -8,3 +8,4 @@ void uart_puts(char *s);
 void send_string(const char * s);
 void uart_hex(unsigned int num);
 void uart_dec(int num);
+void uart_backspace();
