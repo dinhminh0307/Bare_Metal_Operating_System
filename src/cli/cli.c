@@ -117,20 +117,24 @@ int typeCommand() {
         uart_puts("\nIndex out of length for your command\n");
         printOS();
         }
-    } else {
+    } else if(c == 0x08 && commandIndex > 0) {
         // will delete the last element in the commandLine
+        uart_backspace();
         commandLine[commandIndex] = '\0'; // Null-terminate the
         if(commandIndex > 0) {
             commandIndex--; // to avoid negative
         }
+        if(commandIndex == 0) {
+            commandLine[commandIndex] = '\0'; // Null-terminate the
+        }
     }
     
     // Send back the character (echo), if the command line is fully deleted and people backspace, it is not allowed
-    if(commandIndex >= 0) {
-        if(c == '\b') {
-            uart_backspace();
-        }
-    } 
+    // if(commandIndex >= 0) {
+    //     if(c == '\b') {
+    //         uart_backspace();
+    //     }
+    // } 
     uart_sendc(c);
 
     // Check for the 'Enter' key 
