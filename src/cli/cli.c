@@ -11,19 +11,13 @@ void resetCommandLine() {
     commandIndex = 0;
 }
 
-void resetCLI() {
-    for(int i = 0; i < commandIndex;i++) {
-        commandLine[i] = '\0';
-    }
-}
-
 void debugTool() {
     char *c = "123456";
     uart_puts(getLength(c));
 }
 
 void printOS(void) {
-    uart_puts("\n\nC:/DELL/MInh_OS> ");
+    uart_puts("\n\nC:/DELL/MInh_OS>");
 }
 
 void printWelcomeMsg(char *msg) {
@@ -101,33 +95,48 @@ void selectFunction(char *s) {
     } else  {
         printOS(); // Print the prompt again for a new command
     }
-    resetCLI();
     resetCommandLine(); // Reset commandLine after processing the command
 }
 
+/*In the beginning, it can not be backspaced, an it can not backspace out of length of commandLine
+  if c = backspace:
+    while commandIndex > 0:
+        backspace(); */
 int typeCommand() {
     // Read each char
     char c = uart_getc();
-
     // Check for buffer overflow
-    if (commandIndex < COMMAND_LINE_SIZE - 1) {
+    if(c != 0x08) {
+        if (commandIndex < COMMAND_LINE_SIZE - 1) {
         commandLine[commandIndex] = c; // Add the character to commandLine and increment index
         commandIndex++;
         commandLine[commandIndex] = '\0'; // Null-terminate the string
-    } else {
+        } else {
         // Handle overflow, for example, by resetting the command line
         resetCommandLine();
-        uart_puts("\nCommand too long. Please try again.\n");
+        uart_puts("\nIndex out of length for your command\n");
         printOS();
+        }
+    } else {
+        // will delete the last element in the commandLine
+        commandLine[commandIndex] = '\0'; // Null-terminate the
+        if(commandIndex > 0) {
+            commandIndex--; // to avoid negative
+        }
     }
-
-    // Send back the character (echo)
+    
+    // Send back the character (echo), if the command line is fully deleted and people backspace, it is not allowed
+    if(commandIndex >= 0) {
+        if(c == '\b') {
+            uart_backspace();
+        }
+    } 
     uart_sendc(c);
 
-    // Check for the 'Enter' key and if the command is "help"
+    // Check for the 'Enter' key 
     if (c == '\n') {
         selectFunction(commandLine);
+        resetCommandLine();
     }
-
     return 0;
 }
