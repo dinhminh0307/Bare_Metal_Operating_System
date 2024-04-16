@@ -13,3 +13,4 @@ int typeCommand();
 void printClearInfor(void);
 void printSetColorCommand(void);
 void printShowCommand(void);
+void clearCommand(void);

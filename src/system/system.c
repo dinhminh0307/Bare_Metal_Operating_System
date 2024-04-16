@@ -31,6 +31,8 @@ int matchCommand(char *s) {
         return 3;
     } else if(compare(s, "help showinfo\n")) {
         return 4;
+    } else if(compare(s, "clear\n")) {
+        return 5;
     }
     return 0;
 }

@@ -17,7 +17,7 @@ void debugTool() {
 }
 
 void printOS(void) {
-    uart_puts("\n\nC:/DELL/MInh_OS>");
+    uart_puts("\nC:/DELL/MInh_OS>");
 }
 
 void printWelcomeMsg(char *msg) {
@@ -92,6 +92,8 @@ void selectFunction(char *s) {
         printSetColorCommand();
     } else if(matchCommand(s) == 4) {
         printShowCommand();
+    } else if(matchCommand(s) == 5) {
+        clearCommand();
     } else  {
         printOS(); // Print the prompt again for a new command
     }
@@ -130,11 +132,6 @@ int typeCommand() {
     }
     
     // Send back the character (echo), if the command line is fully deleted and people backspace, it is not allowed
-    // if(commandIndex >= 0) {
-    //     if(c == '\b') {
-    //         uart_backspace();
-    //     }
-    // } 
     uart_sendc(c);
 
     // Check for the 'Enter' key 
@@ -143,4 +140,9 @@ int typeCommand() {
         resetCommandLine();
     }
     return 0;
+}
+
+void clearCommand(void) {
+    uart_puts("\x1B[1;1H\x1B[2J");
+    printOS();
 }
