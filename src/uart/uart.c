@@ -27,6 +27,31 @@ void uart_init()
     AUX_MU_CNTL = 3; //enable transmitter and receiver (Tx, Rx)
 }
 
+void uart_backspace() {
+    // wait until transmitter is empty bit number 5
+    do {
+    asm volatile("nop");
+    } while ( !(AUX_MU_LSR & 0x20) );
+    // write the character to the buffer
+    // AUX_MU_IO = c; // AUX_MU_IO is used for both read and write data
+
+    // If it's a backspace
+    // Send the backspace
+        AUX_MU_IO = 0x08;
+        // Wait until transmitter is empty again
+        do {
+            asm volatile("nop");
+        } while (!(AUX_MU_LSR & 0x20));
+        // Send space to overwrite the last character
+        AUX_MU_IO = ' ';
+        // Wait until transmitter is empty again
+        do {
+            asm volatile("nop");
+        } while (!(AUX_MU_LSR & 0x20));
+        // Send backspace again to move the cursor back
+        AUX_MU_IO = 0x08;
+}
+
 /**
 * Send a character
 */
@@ -36,7 +61,9 @@ void uart_sendc(char c) {
     asm volatile("nop");
     } while ( !(AUX_MU_LSR & 0x20) );
     // write the character to the buffer
-    AUX_MU_IO = c; // AUX_MU_IO is used for both read and write data
+    if(c != '\b') {
+        AUX_MU_IO = c; // AUX_MU_IO is used for both read and write data
+    }
 }
 /**
 * Receive a character
