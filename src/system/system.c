@@ -29,7 +29,7 @@ int matchCommand(char *s) {
         return 2;
     } else if(compare(s, "help setcolor\n")) {
         return 3;
-    } else if(compare(s, "showinfo\n")) {
+    } else if(compare(s, "help showinfo\n")) {
         return 4;
     }
     return 0;
