@@ -1,4 +1,5 @@
 #include "./system.h"
+const char *commands[5] = {"help", "clear", "set -t", "set -b", "showinfo"};
 
 int getLength(char *s) {
     int ctr = 0;
@@ -11,6 +12,26 @@ int getLength(char *s) {
     }
     return ctr;
 }
+
+char *strcpy_custom(char *dest, const char *src) {
+     while (*src) {          // While the character src points to is not '\0' (not the end of the string)
+        *dest = *src;       // Copy the character from src to dest
+        dest++;             // Move the destination pointer to the next character
+        src++;              // Move the source pointer to the next character
+    }
+    *dest = '\0';           // Append '\0' to the end of the string in dest
+}
+
+int strncmp_custom(const char *s1, const char *s2, int n) {
+    if (n == 0) return 0;  // If n is zero, no characters are compared, and the function returns 0.
+
+    while (n-- > 1 && *s1 && *s1 == *s2) {
+        s1++;
+        s2++;
+    }
+    return (unsigned char)*s1 - (unsigned char)*s2;
+}
+
 
 
 int compare(char *s, char *target) {

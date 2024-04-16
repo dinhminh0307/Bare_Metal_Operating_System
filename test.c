@@ -1,44 +1,32 @@
-
 #include <stdio.h>
+#include <string.h>
 
-int getLength(char *s) {
-    int ctr = 0;
-    if(*s == '\0') {
-        return 0;
+#define MAX_COMMANDS 5
+char *commands[MAX_COMMANDS] = {"help", "exit", "start", "stop", "restart"};
+
+void printCommands() {
+    printf("Available commands:\n");
+    for (int i = 0; i < MAX_COMMANDS; i++) {
+        printf("%d: %s\n", i + 1, commands[i]);
     }
-    while (*s != '\0') {
-        ctr++;
-        s++;
-    }
-    return ctr;
 }
 
-int compare(char *s, char *target) {
-    while (*s && *s == *target) {
-        s++;
-        target++;
+void autocomplete(const char *input) {
+    int found = 0;
+    for (int i = 0; i < MAX_COMMANDS; i++) {
+        if (strncmp(commands[i], input, strlen(input)) == 0) {
+            printf("%s\n", commands[i]);
+            found = 1;
+        }
     }
-    // If both strings ended, they match, otherwise they don't
-    return *s == '\0' && *target == '\0';
 }
 
-int containSpace(char *s) {
-    int ctr = 0;
-    while(*s != '\0') {
-        if(*s == ' ') ctr++;
-        s++;
+int main() {
+    char input[100];
+    printf("Enter the beginning of a command, then press Enter: ");
+    if (fgets(input, sizeof(input), stdin)) {
+        input[strcspn(input, "\n")] = 0; // Remove the newline character
+        autocomplete(input);
     }
-    return ctr;
-}
-
-
-int main(void) {
-    char *s = "hello world  ";
-    printf("%d", containSpace(s));
-    // if(compare(s, "hello world") == 1) {
-    //     printf("hello world");
-    // }
-    // else {
-    //     printf("vcl");
-    // }
+    return 0;
 }

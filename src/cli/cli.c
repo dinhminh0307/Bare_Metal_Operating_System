@@ -17,7 +17,7 @@ void debugTool() {
 }
 
 void printOS(void) {
-    uart_puts("\nC:/DELL/MInh_OS>");
+    uart_puts("\nC:/DELL/Minh_OS>");
 }
 
 void printWelcomeMsg(char *msg) {
@@ -100,6 +100,18 @@ void selectFunction(char *s) {
     resetCommandLine(); // Reset commandLine after processing the command
 }
 
+void deleteChar() {
+    // will delete the last element in the commandLine
+        uart_backspace();
+        commandLine[commandIndex] = '\0'; // Null-terminate the
+        if(commandIndex > 0) {
+            commandIndex--; // to avoid negative
+        }
+        if(commandIndex == 0) {
+            commandLine[commandIndex] = '\0'; // Null-terminate the
+        }
+}
+
 /*In the beginning, it can not be backspaced, an it can not backspace out of length of commandLine
   if c = backspace:
     while commandIndex > 0:
@@ -108,7 +120,7 @@ int typeCommand() {
     // Read each char
     char c = uart_getc();
     // Check for buffer overflow
-    if(c != 0x08) {
+    if(c != 0x08 && c != '\t') {
         if (commandIndex < COMMAND_LINE_SIZE - 1) {
         commandLine[commandIndex] = c; // Add the character to commandLine and increment index
         commandIndex++;
@@ -119,20 +131,21 @@ int typeCommand() {
         uart_puts("\nIndex out of length for your command\n");
         printOS();
         }
-    } else if(c == 0x08 && commandIndex > 0) {
-        // will delete the last element in the commandLine
-        uart_backspace();
-        commandLine[commandIndex] = '\0'; // Null-terminate the
-        if(commandIndex > 0) {
-            commandIndex--; // to avoid negative
-        }
-        if(commandIndex == 0) {
-            commandLine[commandIndex] = '\0'; // Null-terminate the
-        }
+    } else if(c == 0x08 && commandIndex > 0 && c != '\t') {
+        deleteChar();
     }
     
     // Send back the character (echo), if the command line is fully deleted and people backspace, it is not allowed
-    uart_sendc(c);
+    if(c != '\t') {
+        uart_sendc(c); // avoid corruption
+    } else if(c == '\t') {
+        while(commandIndex > 0) {
+            uart_backspace();
+            commandIndex--;
+        }
+        autocomplete(commandLine);
+    }
+
 
     // Check for the 'Enter' key 
     if (c == '\n') {
@@ -145,4 +158,18 @@ int typeCommand() {
 void clearCommand(void) {
     uart_puts("\x1B[1;1H\x1B[2J");
     printOS();
+}
+
+void autocomplete(const char *input) {
+    int found = 0;
+    for (int i = 0; i < 5; i++) {
+        if (strncmp_custom(commands[i], input, getLength(input)) == 0) { // check if the string is mentioned
+            commandIndex = getLength(commands[i]);
+            for(int j = 0; j < getLength(commands[i]); j++) {
+                commandLine[j] = commands[i][j];
+            }
+            uart_puts(commandLine);
+            found = 1;
+        }
+    }
 }
