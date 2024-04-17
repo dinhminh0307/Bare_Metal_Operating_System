@@ -1,6 +1,6 @@
 #include "./system.h"
 const char *commands[5] = {"help", "clear", "set -t", "set -b", "showinfo"};
-
+int numberCommands[5];
 int getLength(char *s) {
     int ctr = 0;
     if(*s == '\0') {
@@ -58,20 +58,74 @@ int matchCommand(char *s) {
     return 0;
 }
 
-// int containSpace(char *s) {
-//     int ctr = 0;
-//     char tmp[COMMAND_LINE_SIZE];
-//     int commandIndex = 0;
-//     while(*s != '\0') {
-//         if(*s == ' ') {
-//             continue;
-//         } else {
-//             tmp[commandIndex] = *s; // Add the character to commandLine and increment index
-//             commandIndex++;
-//             tmp[commandIndex] = '\0'; // Null-terminate the string
-//         }
-//         s++;
-//     }
-//     return ctr;
-// }
+char extract_char(char *str, int index) {
+    if (getLength(str) == 0) {
+        return '\0';  
+    }
 
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (i == index) {
+            str[i] = '\0';
+        }
+    }
+    return '\0';  
+}
+
+int find_char_index(const char *str, char target) {
+    if (getLength(str) == 0) {
+        return -1;  // Return -1 if the input string is NULL
+    }
+
+    int index = 0;  // Initialize index to start from the beginning of the string
+    while (str[index] != '\0') {  // Loop until the end of the string
+        if (str[index] == target) {
+            return index;  // Return the current index if target is found
+        }
+        index++;  // Move to the next character
+    }
+    return -1;  // Return -1 if the target character is not found
+}
+
+int get2dArrayLength(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE]) {
+    int count = 0;
+    for (int i = 0; i < COMMAND_LINE_SIZE; i++) {
+        if (stack[i][0] != '\0') { // assuming empty strings are marked by a null terminator at the start
+            count++;
+        } else {
+            break;
+        }
+    }
+    return count;
+}
+
+
+int push(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], char *element) {
+    if (getLength(element) == 0 || *element == '\0') return 0; // Element must not be an empty string
+
+    int length = get2dArrayLength(stack);
+    if (length >= COMMAND_LINE_SIZE) { 
+        return 0; // Check for stack overflow
+    } 
+
+    // Add the new element to the stack
+    strcpy_custom(stack[length], element);
+    stack[length][COMMAND_LINE_SIZE - 1] = '\0'; // Ensure null termination
+
+    return 1; 
+}
+
+int pushNewLine(char *s, int *index) {
+    int ctr = 0;
+    while (*s != '\0') {
+        s++;
+    }
+    *s = '\n';
+}
+
+char *peek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index) {
+    int length = get2dArrayLength(stack);
+    if(get2dArrayLength(stack) == 0) {
+        return '\0';
+    }
+    return stack[length - index];
+}

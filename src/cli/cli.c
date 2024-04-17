@@ -2,6 +2,8 @@
 
 char commandLine[COMMAND_LINE_SIZE]; // Fixed-size array for the command line
 int commandIndex = 0; // Index to keep track of the current position in commandLine
+char commandBuffer[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE] = {0};
+volatile int numberOfPlusPresses = 0;
 
 // Utility function to reset the commandLine buffer
 void resetCommandLine() {
@@ -9,6 +11,12 @@ void resetCommandLine() {
         commandLine[i] = '\0';
     }
     commandIndex = 0;
+}
+
+void resetBuffer() {
+    for (int i = 0; i < COMMAND_LINE_SIZE; i++) {
+        commandLine[i] = '\0';
+    }
 }
 
 void debugTool() {
@@ -97,7 +105,6 @@ void selectFunction(char *s) {
     } else  {
         printOS(); // Print the prompt again for a new command
     }
-    resetCommandLine(); // Reset commandLine after processing the command
 }
 
 void deleteChar() {
@@ -112,15 +119,8 @@ void deleteChar() {
         }
 }
 
-/*In the beginning, it can not be backspaced, an it can not backspace out of length of commandLine
-  if c = backspace:
-    while commandIndex > 0:
-        backspace(); */
-int typeCommand() {
-    // Read each char
-    char c = uart_getc();
-    // Check for buffer overflow
-    if(c != 0x08 && c != '\t') {
+void inputChar(char c) {
+    if(c != 0x08 && c != '\t' && c != '+') {
         if (commandIndex < COMMAND_LINE_SIZE - 1) {
         commandLine[commandIndex] = c; // Add the character to commandLine and increment index
         commandIndex++;
@@ -131,12 +131,14 @@ int typeCommand() {
         uart_puts("\nIndex out of length for your command\n");
         printOS();
         }
-    } else if(c == 0x08 && commandIndex > 0 && c != '\t') {
+    } else if(c == 0x08 && commandIndex > 0 && c != '\t' && c != '+') {
         deleteChar();
     }
-    
-    // Send back the character (echo), if the command line is fully deleted and people backspace, it is not allowed
-    if(c != '\t') {
+}
+
+void onTabPress(char c) {
+     // Send back the character (echo), if the command line is fully deleted and people backspace, it is not allowed
+    if(c != '\t' && c != '+') {
         uart_sendc(c); // avoid corruption
     } else if(c == '\t') {
         while(commandIndex > 0) {
@@ -145,13 +147,45 @@ int typeCommand() {
         }
         autocomplete(commandLine);
     }
+}
 
-
+void onEnterPress(char c) {
     // Check for the 'Enter' key 
     if (c == '\n') {
         selectFunction(commandLine);
+        int index = find_char_index(commandLine, '\n');
+        extract_char(commandLine, index);
+        push(commandBuffer, commandLine);
         resetCommandLine();
+        numberOfPlusPresses = 0;
     }
+}
+
+void onPlusPress(char c) {
+    if(c == '+') {
+        numberOfPlusPresses++;
+        int len = getLength(commandLine);
+        while(len  > 0) {
+            uart_backspace(); // error: after press +, the select function does not work
+            len--;
+        }
+        resetBuffer();
+        //peek(commandBuffer, numberOfPlusPresses)
+        strcpy_custom(commandLine, peek(commandBuffer, numberOfPlusPresses));
+        commandIndex = getLength(commandLine);
+        uart_puts(commandLine); 
+    }
+}
+
+
+int typeCommand() {
+    // Read each char
+    char c = uart_getc();
+    inputChar(c);
+    onTabPress(c);
+    onEnterPress(c);
+    onPlusPress(c);
+    
     return 0;
 }
 
@@ -165,9 +199,7 @@ void autocomplete(const char *input) {
     for (int i = 0; i < 5; i++) {
         if (strncmp_custom(commands[i], input, getLength(input)) == 0) { // check if the string is mentioned
             commandIndex = getLength(commands[i]);
-            for(int j = 0; j < getLength(commands[i]); j++) {
-                commandLine[j] = commands[i][j];
-            }
+            strcpy_custom(commandLine, commands[i]);
             uart_puts(commandLine);
             found = 1;
         }
