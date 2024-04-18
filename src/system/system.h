@@ -1,5 +1,12 @@
 #define COMMAND_LINE_SIZE 100
 
+typedef struct {
+    char *returnChar;
+    int currentIndex;
+} command_buffer_struct;
+
+extern int currentIndex;
+
 extern const char *commands[5];
 int compare(char *s, char *target);
 int getLength(char *s);
@@ -11,3 +18,4 @@ int find_char_index(const char *str, char target);
 int push(char stack[5][COMMAND_LINE_SIZE], char *element);
 int pushNewLine(char *s, int *index);
 char *peek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index);
+char *returnPeek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int numberOfMinus);

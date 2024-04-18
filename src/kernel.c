@@ -105,12 +105,36 @@ void view_board_model(void) {
     }
 }
 
+void view_board_revision(void) {
+    mBuf[0] = 7*4; // Message Buffer Size in bytes (8 elements * 4 bytes (32 bit) each)
+    mBuf[1] = MBOX_REQUEST; // Message Request Code (this is a request message)
+    mBuf[2] = BOARD_REVISION_TAG; // TAG Identifier: Get uart clock command,
+    mBuf[3] = 4; // Value buffer size in bytes (max of request and response lengths)
+    mBuf[4] = 0; // REQUEST CODE = 0
+    mBuf[5] = 0; // clear output buffer (response data are mBuf[5] & mBuf[6])
+    mBuf[6] = MBOX_TAG_LAST;
+     if (mbox_call(ADDR(mBuf), MBOX_CH_PROP)) {
+        // uart_puts("Response Code for whole message: ");
+        // uart_hex(mBuf[1]);
+        // uart_puts("\n");
+        // uart_puts("Response Code in Message TAG: ");
+        // uart_hex(mBuf[4]);
+        // uart_puts("\n");
+        uart_puts("DATA: Board Revision Info = ");
+        uart_dec(mBuf[5]);
+        uart_puts("\n");
+    } else {
+        uart_puts("Unable to query!\n");
+    }
+}
+
 void main()
 {
     // set up serial console
     uart_init();
     // say hello
     //uart_clock_request();
+    //view_board_revision();
     //view_firmware_revision();
     // echo everything back
     //view_board_model();

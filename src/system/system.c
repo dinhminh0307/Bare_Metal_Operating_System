@@ -1,6 +1,7 @@
 #include "./system.h"
-const char *commands[5] = {"help", "clear", "set -t", "set -b", "showinfo"};
+const char *commands[5] = {"help", "clear", "setcolor -t", "setcolor -b", "showinfo"};
 int numberCommands[5];
+int currentIndex = 0;
 int getLength(char *s) {
     int ctr = 0;
     if(*s == '\0') {
@@ -54,6 +55,14 @@ int matchCommand(char *s) {
         return 4;
     } else if(compare(s, "clear\n")) {
         return 5;
+    } else if(compare(s, "showinfo\n")) {
+        return 6;
+    } 
+
+    if(strncmp_custom(s, "setcolor -t ", 12) == 0) {
+        return 7;
+    } else if(strncmp_custom(s, "setcolor -b ", 12) == 0) {
+        return 8;
     }
     return 0;
 }
@@ -124,8 +133,25 @@ int pushNewLine(char *s, int *index) {
 
 char *peek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index) {
     int length = get2dArrayLength(stack);
+    if(index > length) {
+        return '0';
+    }
     if(get2dArrayLength(stack) == 0) {
         return '\0';
     }
+    currentIndex = length - index;
     return stack[length - index];
+}
+
+char *returnPeek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int numberOfMinus) {
+    int length = get2dArrayLength(stack);
+    if(numberOfMinus + currentIndex > length) {
+        return '0';
+    }
+
+    if(length == 0) {
+        return '\0';
+    }
+
+    return stack[currentIndex + numberOfMinus];
 }

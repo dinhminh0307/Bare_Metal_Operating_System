@@ -1,5 +1,7 @@
 #include "../uart/uart.h"
 #include "../system/system.h"
+#include "../constant/tag.h"
+#include "../constant/color.h"
 
 //Variables declaration
 
@@ -14,3 +16,7 @@ void printClearInfor(void);
 void printSetColorCommand(void);
 void printShowCommand(void);
 void clearCommand(void);
+int getBoardRevision(void);
+int getMacAddress(void);
+char *returnTextColor(char *s);
+char *returnBackGroundColor(char *s);
