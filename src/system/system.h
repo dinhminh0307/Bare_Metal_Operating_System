@@ -12,6 +12,8 @@ extern int currentIndex;
 
 extern const char *commands[5];
 extern const char *help[3];
+extern const char *setcolor[2];
+
 int compare(char *s, char *target);
 int getLength(char *s);
 int matchCommand(char *s);
@@ -24,6 +26,9 @@ int pushNewLine(char *s, int *index);
 char *peek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index);
 char *returnPeek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int numberOfMinus);
 void strcat_custom(char* dest, char* src);
-int find_string_index(char *stack[COMMAND_LINE_SIZE], char *target);
-char *get_string_by_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index);
+int find_string_help_index(char *stack[COMMAND_LINE_SIZE], char *target);
+char *get_help_by_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index);
 int getSizeHelp();
+char *get_set_color_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index);
+int find_set_color_index(char *stack[COMMAND_LINE_SIZE], char *target);
+int getSizeSetColor();

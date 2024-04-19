@@ -8,6 +8,7 @@ char commandBuffer[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE] = {0};
 volatile int numberOfPlusPresses = 0;
 volatile int numberOfMinusPresses = 0;
 int helpIndex;
+int setColorIndex;
 
 char *textColor;
 char *backGroundColor;
@@ -17,7 +18,9 @@ volatile int isTabPressed = 0;
 volatile int helpTabPressed = 0;
 volatile int isHelpFound = 0;
 
-// flag for color auto completion
+// flag for setcolor auto completion
+volatile int isSetColorPressed = 0;
+volatile int setColorTabPressed = 0;
 
 // Utility function to reset the commandLine buffer
 void resetCommandLine() {
@@ -247,15 +250,6 @@ void inputChar(char c) {
     }
 }
 
-int checkIsTheCommand(char *input) {
-    for (int i = 0; i < 5; i++) {
-        if (strncmp_custom(commands[i], input, getLength(input)) == 0) { // check if the string is mentioned
-            return 1;    
-        }
-    }
-    return 0;
-}
-
 void clearCommandLineBuffer() {
     while(commandIndex > 0) {
             uart_backspace();
@@ -272,8 +266,9 @@ void onTabPress(char c) {
         if(strncmp_custom(commandLine, "help ", 5) == 0) {
             helpTabPressed++;
             findHelpCommand();
-        } else if(compare(commandLine, "setcolor ")) {
-
+        } else if(strncmp_custom(commandLine, "setcolor ", 9) == 0) {
+            setColorTabPressed++; 
+            find_set_color_command();
         }
         autocomplete(commandLine);
     }
@@ -290,7 +285,6 @@ void onEnterPress(char c) {
         numberOfPlusPresses = 0;
         numberOfMinusPresses = 0;
         currentIndex = 0;
-        suggestionLenght = 0;
         isTabPressed = 0;
         helpTabPressed = 0; // clear flag
     }
@@ -362,22 +356,38 @@ void autocomplete(const char *input) {
     }
 }
 
+void find_set_color_command() {
+     // for help command
+        // key value: tab:1 - index 0
+        if(setColorTabPressed == 1) {
+            setColorIndex = find_set_color_index(setcolor, commandLine);
+        } else {
+            setColorIndex++;
+        }
+        clearCommandLineBuffer();
+        strcpy_custom(commandLine, get_set_color_index(setcolor, setColorIndex)); // error here
+        if(setColorIndex > getSizeSetColor() - 1) {
+            setColorIndex = 0;
+        }
+        commandIndex = getLength(commandLine);
+        uart_puts(commandLine);
+}
+
 void findHelpCommand() {
     // for help command
         // key value: tab:1 - index 0
         if(helpTabPressed == 1) {
-            helpIndex = find_string_index(help, commandLine);
+            helpIndex = find_string_help_index(help, commandLine);
         } else {
             helpIndex++;
         }
         clearCommandLineBuffer();
-        strcpy_custom(commandLine, get_string_by_index(help, helpIndex)); // error here
+        strcpy_custom(commandLine, get_help_by_index(help, helpIndex)); // error here
         if(helpIndex > getSizeHelp() - 1) {
             helpIndex = 0;
         }
         commandIndex = getLength(commandLine);
         uart_puts(commandLine);
-        
 }
 
 

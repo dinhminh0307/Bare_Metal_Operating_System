@@ -1,6 +1,7 @@
 #include "./system.h"
 const char *commands[5] = {"help", "clear", "setcolor", "showinfo"};
 const char *help[3] = {"help clear", "help setcolor", "help showinfo"};
+const char *setcolor[2] = {"setcolor -t", "setcolor -b"};
 
 #define HELP_SIZE sizeof(help) / sizeof(help[0])
 int numberCommands[5];
@@ -179,7 +180,21 @@ int getSizeHelp() {
     return sizeof(help) / sizeof(help[0]);
 }
 
-int find_string_index(char *stack[COMMAND_LINE_SIZE], char *target) {
+int getSizeSetColor() {
+    return sizeof(setcolor) / sizeof(setcolor[0]);
+}
+
+int find_set_color_index(char *stack[COMMAND_LINE_SIZE], char *target) {
+    int length = getSizeSetColor();
+    for(int i = 0; i < length; i++) {
+            if (strncmp_custom(stack[i], target, getLength(target)) == 0) { // check if the string is mentioned
+                return i;
+            }
+        }
+    return -1;
+}
+
+int find_string_help_index(char *stack[COMMAND_LINE_SIZE], char *target) {
     int length = getSizeHelp();
     for(int i = 0; i < length; i++) {
             if (strncmp_custom(stack[i], target, getLength(target)) == 0) { // check if the string is mentioned
@@ -189,11 +204,20 @@ int find_string_index(char *stack[COMMAND_LINE_SIZE], char *target) {
     return -1;
 }
 
-char *get_string_by_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index) {
+char *get_help_by_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index) {
     if (index >= 0 && index < getSizeHelp()) {
         return help[index];  // Return the address of the string at the given index
     } else if(index > getSizeHelp() - 1) {
         index = 0;
         return help[0];  // Return NULL if the index is out of bounds
+    }
+}
+
+char *get_set_color_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index) {
+    if (index >= 0 && index < getSizeSetColor()) {
+        return setcolor[index];  // Return the address of the string at the given index
+    } else if(index > getSizeSetColor() - 1) {
+        index = 0;
+        return setcolor[0];  // Return NULL if the index is out of bounds
     }
 }
