@@ -139,6 +139,7 @@ void main()
     // echo everything back
     //view_board_model();
     printWelcomeMsg(hexArray);
+    //uart_puts("Hello World\n");
     //debugTool();
     while(1) {
         typeCommand();

@@ -3,80 +3,120 @@
 
 void uart_init()
 {
-    /*Using GPIO 32 and 33 for UART1*/
-    unsigned int r;
-    /* initialize UART */
-    AUX_ENABLE |= 1; //enable mini UART (UART1)
-    AUX_MU_CNTL = 0; //stop transmitter and receiver
-    AUX_MU_LCR = 3; //8-bit mode (also enable bit 1 to be used for RBP3)
-    AUX_MU_MCR = 0; //clear RTS (request to send)
-    AUX_MU_IER = 0; //disable interrupts
-    AUX_MU_IIR = 0xc6; //enable and clear FIFOs
-    AUX_MU_BAUD = 54; //configure 57600 baud [system_clk_freq/(baud_rate*8) - 1]
-    /* map UART1 to GPIO pins 32 and 33 */
-    r = GPFSEL3;
-    r &= ~( (7 << 6)|(7 << 9) ); //clear bits 17-12 (FSEL15, FSEL14)
-    r |= (2 << 6)|(2 << 9); //set value 2 (select ALT5: TXD1/RXD1)
-    GPFSEL3 = r;
-    /* enable GPIO 14, 15 */
-    GPPUD = 0; //No pull up/down control
-    r = 150; while(r--) { asm volatile("nop"); } //waiting 150 cycles
-    GPPUDCLK1 = (1 << 32)|(1 << 33); //enable clock for GPIO 32, 33
-    r = 150; while(r--) { asm volatile("nop"); } //waiting 150 cycles
-    GPPUDCLK1 = 0; //flush GPIO setup
-    AUX_MU_CNTL = 3; //enable transmitter and receiver (Tx, Rx)
+      unsigned int r;
+
+	/* Turn off UART0 */
+	UART0_CR = 0x0;
+
+	/* Setup GPIO pins 14 and 15 */
+
+	/* Set GPIO14 and GPIO15 to be pl011 TX/RX which is ALT0	*/
+	r = GPFSEL1;
+	r &=  ~((7 << 12) | (7 << 15)); //clear bits 17-12 (FSEL15, FSEL14)
+	r |= (0b100 << 12)|(0b100 << 15);   //Set value 0b100 (select ALT0: TXD0/RXD0)
+	GPFSEL1 = r;
+	
+
+	/* enable GPIO 14, 15 */
+
+	GPPUD = 0;            //No pull up/down control
+	//Toogle clock to flush GPIO setup
+	r = 150; while(r--) { asm volatile("nop"); } //waiting 150 cycles
+	GPPUDCLK0 = (1 << 14)|(1 << 15); //enable clock for GPIO 14, 15
+	r = 150; while(r--) { asm volatile("nop"); } //waiting 150 cycles
+	GPPUDCLK0 = 0;        // flush GPIO setup
+
+
+	/* Mask all interrupts. */
+	UART0_IMSC = 0;
+
+	/* Clear pending interrupts. */
+	UART0_ICR = 0x7FF;
+
+	/* Set integer & fractional part of Baud rate
+	Divider = UART_CLOCK/(16 * Baud)            
+	Default UART_CLOCK = 48MHz (old firmware it was 3MHz); 
+	Integer part register UART0_IBRD  = integer part of Divider 
+	Fraction part register UART0_FBRD = (Fractional part * 64) + 0.5 */
+
+	//115200 baud
+	UART0_IBRD = 26;       
+	UART0_FBRD = 3;
+
+	/* Set up the Line Control Register */
+	/* Enable FIFO */
+	/* Set length to 8 bit */
+	/* Defaults for other bit are No parity, 1 stop bit */
+	UART0_LCRH = UART0_LCRH_FEN | UART0_LCRH_WLEN_8BIT;
+
+	/* Enable UART0, receive, and transmit */
+	UART0_CR = 0x301;     // enable Tx, Rx, FIFO
 }
 
 void uart_backspace() {
     // wait until transmitter is empty bit number 5
+     // Wait until transmitter is empty (check if transmit FIFO is empty)
     do {
-    asm volatile("nop");
-    } while ( !(AUX_MU_LSR & 0x20) );
-    // write the character to the buffer
-    // AUX_MU_IO = c; // AUX_MU_IO is used for both read and write data
+        asm volatile("nop");
+    } while (UART0_FR & (1 << 5)); // UART_FR_TXFF is typically the 5th bit, check if FIFO is full.
 
-    // If it's a backspace
-    // Send the backspace
-        AUX_MU_IO = 0x08;
-        // Wait until transmitter is empty again
-        do {
-            asm volatile("nop");
-        } while (!(AUX_MU_LSR & 0x20));
-        // Send space to overwrite the last character
-        AUX_MU_IO = ' ';
-        // Wait until transmitter is empty again
-        do {
-            asm volatile("nop");
-        } while (!(AUX_MU_LSR & 0x20));
-        // Send backspace again to move the cursor back
-        AUX_MU_IO = 0x08;
+    // Send the backspace character
+    UART0_DR = 0x08;  // Backspace ASCII code
+
+    // Wait until transmitter is empty again
+    do {
+        asm volatile("nop");
+    } while (UART0_FR & (1 << 5)); // Check if FIFO is full again
+
+    // Send space to overwrite the last character
+    UART0_DR = ' ';
+
+    // Wait until transmitter is empty again
+    do {
+        asm volatile("nop");
+    } while (UART0_FR & (1 << 5)); // Check if FIFO is full again
+
+    // Send backspace again to move the cursor back
+    UART0_DR = 0x08;
 }
 
 /**
 * Send a character
 */
 void uart_sendc(char c) {
-    // wait until transmitter is empty bit number 5
+    // // wait until transmitter is empty bit number 5
+    // do {
+    // asm volatile("nop");
+    // } while ( !(AUX_MU_LSR & 0x20) );
+    // // write the character to the buffer
+
+    /* Check Flags Register */
+	/* And wait until transmitter is not full */
+	
     do {
-    asm volatile("nop");
-    } while ( !(AUX_MU_LSR & 0x20) );
-    // write the character to the buffer
+        asm volatile("nop");
+    } while(UART0_FR & UART0_FR_TXFF); // 0x20 is to indicate bit number 5 to check transmite FIFO is full
     if(c != '\b') {
-        AUX_MU_IO = c; // AUX_MU_IO is used for both read and write data
+        UART0_DR = c; // AUX_MU_IO is used for both read and write data
     }
 }
 /**
 * Receive a character
 */
 char uart_getc() {
-    char c;
-    // wait until data is ready (one symbol) bit 0
-    do {
-    asm volatile("nop");
-    } while ( !(AUX_MU_LSR & 0x01) );
-    // read it and return
-    c = (unsigned char)(AUX_MU_IO); 
-    // convert carriage return to newline character
+    char c = 0;
+
+    /* Check Flags Register */
+    /* Wait until Receiver is not empty
+     * (at least one byte data in receive fifo)*/
+	do {
+		asm volatile("nop");
+    } while ( UART0_FR & UART0_FR_RXFE );
+
+    /* read it and return */
+    c = (unsigned char) (UART0_DR);
+
+    /* convert carriage return to newline */
     return (c == '\r' ? '\n' : c);
 }
 /**
@@ -84,10 +124,10 @@ char uart_getc() {
 */
 void uart_puts(char *s) {
     while (*s) {
-    // convert newline to carriage return + newline
-    if (*s == '\n')
-    uart_sendc('\r');
-    uart_sendc(*s++);
+        /* convert newline to carriage return + newline */
+        if (*s == '\n')
+            uart_sendc('\r');
+        uart_sendc(*s++);
     }
 }
 
@@ -103,12 +143,12 @@ void send_string(const char *s) {
 void uart_hex(unsigned int num) {
     uart_puts("0x");
     for (int pos = 28; pos >= 0; pos = pos - 4) {
-    // Get highest 4-bit nibble
-    char digit = (num >> pos) & 0xF;
-    /* Convert to ASCII code */
-    // 0-9 => '0'-'9', 10-15 => 'A'-'F'
-    digit += (digit > 9) ? (-10 + 'A') : '0';
-    uart_sendc(digit);
+        // Get highest 4-bit nibble
+        char digit = (num >> pos) & 0xF;
+        /* Convert to ASCII code */
+        // 0-9 => '0'-'9', 10-15 => 'A'-'F'
+        digit += (digit > 9) ? (-10 + 'A') : '0';
+        uart_sendc(digit);
     }
 }
 /**

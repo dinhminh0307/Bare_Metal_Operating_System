@@ -1,12 +1,16 @@
 #include "./cli.h"
 
 char commandLine[COMMAND_LINE_SIZE]; // Fixed-size array for the command line
+char suggestionBuffer[COMMAND_LINE_SIZE];
+int suggestionLenght;
 int commandIndex = 0; // Index to keep track of the current position in commandLine
 char commandBuffer[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE] = {0};
 volatile int numberOfPlusPresses = 0;
 volatile int numberOfMinusPresses = 0;
-char *textColor = DIM_YELLOW_COLOR;
-char *backGroundColor = BLACK_COLOR;
+char *textColor;
+char *backGroundColor;
+volatile int isTabPressed = 0;
+volatile int found = 0;
 
 // Utility function to reset the commandLine buffer
 void resetCommandLine() {
@@ -14,6 +18,12 @@ void resetCommandLine() {
         commandLine[i] = '\0';
     }
     commandIndex = 0;
+}
+
+void clearSuggestionbuffer() {
+    for (int i = 0; i < COMMAND_LINE_SIZE; i++) {
+        suggestionBuffer[i] = '\0';
+    }
 }
 
 void resetBuffer() {
@@ -37,43 +47,68 @@ void printWelcomeMsg(char *msg) {
 }
 
 void printClearInfor(void) {
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("+----+--------------+---------------------------------------------------------+\n");
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("| 2  | clear        | - Clear screen (in our terminal it will scroll down to  |\n");
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("|    |              |   current position of the cursor).                      |\n");
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("|    |              | - Example: MyOS> clear                                  |\n");
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("+----+--------------+---------------------------------------------------------+\n");
      printOS();
 }
 
 void printSetColorCommand(void) {
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("+----+--------------+---------------------------------------------------------+\n");
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("| 3  | setcolor     | - Set text color, and/or background color of the        |\n");
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("|    |              |   console to one of the following colors: BLACK, RED,   |\n");
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("|    |              |   GREEN, YELLOW, BLUE, PURPLE, CYAN, WHITE              |\n");
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("|    |              | - Examples:                                             |\n");
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("|    |              |   MyOS> setcolor -t yellow                              |\n");
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("|    |              |   MyOS> setcolor -b yellow -t white                     |\n");
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("+----+--------------+---------------------------------------------------------+\n");
-     printOS();
+    printOS();
 }
 
 void printShowCommand(void) {
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
     uart_puts("+----+--------------+---------------------------------------------------------+\n");
-    uart_puts(RESET_COLOR);
     uart_puts(backGroundColor);  // Set background colorRESET_COLOR
     uart_puts(textColor);        // Set text colorRESET_COLOR
-    uart_puts("| 4  | showinfo     | - Show board revision and board MAC address in correct  |\n"RESET_COLOR);
+    uart_puts("| 4  | showinfo     | - Show board revision and board MAC address in correct  |\n");
     uart_puts(backGroundColor);  // Set background colorRESET_COLOR
     uart_puts(textColor);        // Set text colorRESET_COLOR
-    uart_puts("|    |              |   format/meaningful information                         |\n"RESET_COLOR);
+    uart_puts("|    |              |   format/meaningful information                         |\n");
     uart_puts(backGroundColor);  // Set background colorRESET_COLOR
     uart_puts(textColor);        // Set text colorRESET_COLOR
-    uart_puts("|    |              | - Example: MyOS> showinfo                               |\n"RESET_COLOR);
+    uart_puts("|    |              | - Example: MyOS> showinfo                               |\n");
     uart_puts(backGroundColor);  // Set background colorRESET_COLOR
     uart_puts(textColor);        // Set text colorRESET_COLOR
-    uart_puts("+----+--------------+---------------------------------------------------------+\n"RESET_COLOR);
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
     
     printOS();
 }
@@ -81,73 +116,73 @@ void printShowCommand(void) {
 void printMenu() {
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("+----+--------------+---------------------------------------------------------+\n"RESET_COLOR);
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("| No.| Command Name | Usage                                                   |\n"RESET_COLOR);
+    uart_puts("| No.| Command Name | Usage                                                   |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("+----+--------------+---------------------------------------------------------+\n"RESET_COLOR);
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("| 1  | help         | - Show brief information of all commands                |\n"RESET_COLOR);
+    uart_puts("| 1  | help         | - Show brief information of all commands                |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("|    |              | - Example: MyOS> help                                   |\n"RESET_COLOR);
+    uart_puts("|    |              | - Example: MyOS> help                                   |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("|    | help         | - Show full information of the command                  |\n"RESET_COLOR);
+    uart_puts("|    | help         | - Show full information of the command                  |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("|    | <command>    | - Example: MyOS> help hwinfo                            |\n"RESET_COLOR);
+    uart_puts("|    | <command>    | - Example: MyOS> help hwinfo                            |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("+----+--------------+---------------------------------------------------------+\n"RESET_COLOR);
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("| 2  | clear        | - Clear screen (in our terminal it will scroll down to  |\n"RESET_COLOR);
+    uart_puts("| 2  | clear        | - Clear screen (in our terminal it will scroll down to  |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("|    |              |   current position of the cursor).                      |\n"RESET_COLOR);
+    uart_puts("|    |              |   current position of the cursor).                      |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("|    |              | - Example: MyOS> clear                                  |\n"RESET_COLOR);
+    uart_puts("|    |              | - Example: MyOS> clear                                  |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("+----+--------------+---------------------------------------------------------+\n"RESET_COLOR);
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("| 3  | setcolor     | - Set text color, and/or background color of the        |\n"RESET_COLOR);
+    uart_puts("| 3  | setcolor     | - Set text color, and/or background color of the        |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("|    |              |   console to one of the following colors: BLACK, RED,   |\n"RESET_COLOR);
+    uart_puts("|    |              |   console to one of the following colors: BLACK, RED,   |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("|    |              |   GREEN, YELLOW, BLUE, PURPLE, CYAN, WHITE              |\n"RESET_COLOR);
+    uart_puts("|    |              |   GREEN, YELLOW, BLUE, PURPLE, CYAN, WHITE              |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("|    |              | - Examples:                                             |\n"RESET_COLOR);
+    uart_puts("|    |              | - Examples:                                             |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("|    |              |   MyOS> setcolor -t yellow                              |\n"RESET_COLOR);
+    uart_puts("|    |              |   MyOS> setcolor -t yellow                              |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("|    |              |   MyOS> setcolor -b yellow -t white                     |\n"RESET_COLOR);
+    uart_puts("|    |              |   MyOS> setcolor -b yellow -t white                     |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("+----+--------------+---------------------------------------------------------+\n"RESET_COLOR);
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("| 4  | showinfo     | - Show board revision and board MAC address in correct  |\n"RESET_COLOR);
+    uart_puts("| 4  | showinfo     | - Show board revision and board MAC address in correct  |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("|    |              |   format/meaningful information                         |\n"RESET_COLOR);
+    uart_puts("|    |              |   format/meaningful information                         |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("|    |              | - Example: MyOS> showinfo                               |\n"RESET_COLOR);
+    uart_puts("|    |              | - Example: MyOS> showinfo                               |\n");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_puts("+----+--------------+---------------------------------------------------------+\n"RESET_COLOR);
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
     printOS();
 }
 
@@ -204,9 +239,35 @@ void inputChar(char c) {
     }
 }
 
+int checkIsTheCommand(char *input) {
+    for (int i = 0; i < 5; i++) {
+        if (strncmp_custom(commands[i], input, getLength(input)) == 0) { // check if the string is mentioned
+            return 1;    
+        }
+    }
+    return 0;
+}
+
 void onTabPress(char c) {
      // Send back the character (echo), if the command line is fully deleted and people backspace, it is not allowed
     if(c != '\t' && c != '+' && c != '_') {
+        // if(checkIsTheCommand(commandLine) == 0) {
+        //     while(suggestionLenght > 2) {
+        //         uart_backspace();
+        //         suggestionLenght--;
+        //     }
+        // } else {
+        //     while(suggestionLenght > 1) {
+        //         uart_backspace();
+        //         suggestionLenght--;
+        //     }
+        // }
+        
+        // suggestionTool(commandLine, 0);
+        // clearSuggestionbuffer(); // clear the buffer everytime i type
+        // if(found == 0) {
+        //     uart_sendc(c); // avoid corruption
+        // }
         uart_sendc(c); // avoid corruption
     } else if(c == '\t') {
         while(commandIndex > 0) {
@@ -214,6 +275,7 @@ void onTabPress(char c) {
             commandIndex--;
         }
         autocomplete(commandLine);
+        isTabPressed = 0;
     }
 }
 
@@ -279,6 +341,10 @@ void clearCommand(void) {
     printOS();
 }
 
+/*when user type s => the corresponding last character of that command is sugessted (it will loop thru the enum and suggest, meanwhile the cursor still in current position)
+  after user press tab, it will suggest other as well and if user hit enter, it will select
+  hit enter again to send the command */
+
 void autocomplete(const char *input) {
     int found = 0;
     for (int i = 0; i < 5; i++) {
@@ -289,6 +355,21 @@ void autocomplete(const char *input) {
             found = 1;
         }
     }
+}
+
+int suggestionTool(const char *input, int isTabPressed) {
+    strcpy_custom(suggestionBuffer, input);
+    for (int i = 0; i < 5; i++) {
+        if (strncmp_custom(commands[i], suggestionBuffer, getLength(suggestionBuffer)) == 0) { // check if the string is mentioned
+            // commandIndex = getLength(commands[i]);
+            strcpy_custom(suggestionBuffer, commands[i]);
+            suggestionLenght = getLength(suggestionBuffer);
+            uart_puts(suggestionBuffer);
+            found = 1;
+            return 0;
+        }
+    }
+    found = 0;
 }
 
 int getBoardRevision(void) {
@@ -324,20 +405,39 @@ int getMacAddress(void) {
 }
 
 void display_system_info() {
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("+---------------------------------------------------------+\n");
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("| Board Info             | Value                          |\n");
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("+---------------------------------------------------------+\n");
     
     // Board Revision
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("| Board Revision         | ");
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_hex(getBoardRevision());
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("                         |\n"); // Adjust spaces manually to align the table
     
     // MAC Address
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("| MAC Address            | ");
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_hex(getMacAddress());
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("                         |\n"); // Adjust spaces based on expected length of MAC address
-    
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
     uart_puts("+---------------------------------------------------------+\n");
     printOS();
 }
@@ -351,29 +451,32 @@ char *returnTextColor(char *input) {
 
         // Compare and return the corresponding color code
         if (compare(color, "red")) {
-            textColor = RED_COLOR;
-            return RED_COLOR;
+            textColor = DIM_RED_COLOR;
+            return DIM_RED_COLOR;
         } else if (compare(color, "green")) {
-            textColor = GREEN_COLOR;
-            return GREEN_COLOR;
+            textColor = DIM_GREEN_COLOR;
+            return DIM_GREEN_COLOR;
         } else if (compare(color, "yellow")) {
-            textColor = YELLOW_COLOR;
-            return YELLOW_COLOR;
+            textColor = DIM_YELLOW_COLOR;
+            return DIM_YELLOW_COLOR;
         } else if (compare(color, "blue")) {
-            textColor = BLUE_COLOR;
-            return BLUE_COLOR;
+            textColor = DIM_BLUE_COLOR;
+            return DIM_BLUE_COLOR;
         } else if (compare(color, "magenta")) {
-            textColor = MAGENTA_COLOR;
-            return MAGENTA_COLOR;
+            textColor = DIM_MAGENTA_COLOR;
+            return DIM_MAGENTA_COLOR;
         } else if (compare(color, "cyan")) {
-            textColor = CYAN_COLOR;
-            return CYAN_COLOR;
+            textColor = DIM_CYAN_COLOR;
+            return DIM_CYAN_COLOR;
         } else if (compare(color, "white")) {
-            textColor = WHITE_COLOR;
-            return WHITE_COLOR;
+            textColor = DIM_WHITE_COLOR;
+            return DIM_WHITE_COLOR;
         } else if (compare(color, "black")) {
-            textColor = BLACK_COLOR;
-            return BLACK_COLOR;
+            textColor = DIM_BLACK_COLOR;
+            return DIM_BLACK_COLOR;
+        } else if(compare(color, "reset")) {
+            textColor = RESET_COLOR;
+            return RESET_COLOR;
         }
     }
 }
@@ -410,6 +513,9 @@ char *returnBackGroundColor(char *input) {
         } else if (compare(color, "black")) {
             backGroundColor = ANSI_COLOR_BLACK;
             return ANSI_COLOR_BLACK;
+        } else if(compare(color, "reset")) {
+            backGroundColor = RESET_COLOR;
+            return RESET_COLOR;
         }
     }
 }

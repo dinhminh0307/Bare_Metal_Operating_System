@@ -22,16 +22,16 @@ all: clean uart_build mailbox_build system_build cli_build kernel8.img minh
 	aarch64-none-elf-gcc $(GCCFLAGS) -c $< -o $@ > NUL 2>&1
 
 uart_build: ./src/uart/uart.c
-	aarch64-none-elf-gcc $(GCCFLAGS) -c ./src/uart/uart.c -o ./build/uart.o 
+	aarch64-none-elf-gcc $(GCCFLAGS) -c ./src/uart/uart.c -o ./build/uart.o > NUL 2>&1
 
 cli_build: ./src/cli/cli.c
-	aarch64-none-elf-gcc $(GCCFLAGS) -c ./src/cli/cli.c -o ./build/cli.o 
+	aarch64-none-elf-gcc $(GCCFLAGS) -c ./src/cli/cli.c -o ./build/cli.o > NUL 2>&1
 
 system_build: ./src/system/system.c
-	aarch64-none-elf-gcc $(GCCFLAGS) -c ./src/system/system.c -o ./build/system.o 
+	aarch64-none-elf-gcc $(GCCFLAGS) -c ./src/system/system.c -o ./build/system.o > NUL 2>&1
 
 mailbox_build: ./src/mailbox/mailbox.c
-	aarch64-none-elf-gcc $(GCCFLAGS) -c ./src/mailbox/mailbox.c -o ./build/mailbox.o 
+	aarch64-none-elf-gcc $(GCCFLAGS) -c ./src/mailbox/mailbox.c -o ./build/mailbox.o > NUL 2>&1
 
 kernel8.img: $(OBJECTS)
 #aarch64-none-elf-ld -nostdlib ./build/boot.o $(OFILES) -T ./src/link.ld -o ./build/kernel8.elf
@@ -41,4 +41,4 @@ kernel8.img: $(OBJECTS)
 clean:
 	del .\build\kernel8.elf .\build\*.o *.img
 minh:
-	qemu-system-aarch64 -M raspi3 -kernel kernel8.img -serial null -serial stdio
+	qemu-system-aarch64 -M raspi3 -kernel kernel8.img -serial stdio
