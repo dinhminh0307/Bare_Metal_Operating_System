@@ -2,10 +2,11 @@
 
 #define COMMAND_LINE_SIZE 100
 
+
 typedef struct {
-    char *returnChar;
-    int currentIndex;
-} command_buffer_struct;
+    int key;
+    int index;
+} string_array_key_value;
 
 extern int currentIndex;
 
@@ -25,3 +26,4 @@ char *returnPeek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int numberOfM
 void strcat_custom(char* dest, char* src);
 int find_string_index(char *stack[COMMAND_LINE_SIZE], char *target);
 char *get_string_by_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index);
+int getSizeHelp();

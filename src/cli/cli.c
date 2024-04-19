@@ -7,14 +7,17 @@ int commandIndex = 0; // Index to keep track of the current position in commandL
 char commandBuffer[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE] = {0};
 volatile int numberOfPlusPresses = 0;
 volatile int numberOfMinusPresses = 0;
+int helpIndex;
 
 char *textColor;
 char *backGroundColor;
 
 // flag for auto complete proccess
 volatile int isTabPressed = 0;
-volatile int helpTabPressed;
+volatile int helpTabPressed = 0;
 volatile int isHelpFound = 0;
+
+// flag for color auto completion
 
 // Utility function to reset the commandLine buffer
 void resetCommandLine() {
@@ -265,9 +268,12 @@ void onTabPress(char c) {
     if(c != '\t' && c != '+' && c != '_') {
         uart_sendc(c); // avoid corruption
     } else if(c == '\t') {
-        clearCommandLineBuffer();
-        if(compare(commandLine, "help ")) {
-            isHelpFound = 1;
+        clearCommandLineBuffer(); // clear the old cmd when press tab
+        if(strncmp_custom(commandLine, "help ", 5) == 0) {
+            helpTabPressed++;
+            findHelpCommand();
+        } else if(compare(commandLine, "setcolor ")) {
+
         }
         autocomplete(commandLine);
     }
@@ -286,7 +292,7 @@ void onEnterPress(char c) {
         currentIndex = 0;
         suggestionLenght = 0;
         isTabPressed = 0;
-        isHelpFound = 0; // clear flag
+        helpTabPressed = 0; // clear flag
     }
 }
 
@@ -345,7 +351,7 @@ void clearCommand(void) {
 void autocomplete(const char *input) {
     int found = 0;
     if(isHelpFound == 0) {
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
             if (strncmp_custom(commands[i], input, getLength(input)) == 0) { // check if the string is mentioned
                 commandIndex = getLength(commands[i]);
                 strcpy_custom(commandLine, commands[i]);
@@ -354,37 +360,26 @@ void autocomplete(const char *input) {
             }
         }
     }
-    // for help command
-    if(isHelpFound == 1) {
-        // for(int i = 0; i < 3; i++) {
-        //     // if (strncmp_custom(help[i], commandLine, getLength(commandLine)) == 0) { // check if the string is mentioned
-        //     //     strcpy_custom(commandLine, help[i]);
-        //     //     commandIndex = getLength(commandLine);
-        //     //     uart_puts(commandLine);
-        //     // }
-            
-        // }
-        int index = find_string_index(help, commandLine);
-        strcpy_custom(commandLine, get_string_by_index(help, index));
-        commandIndex = getLength(commandLine);
-        uart_puts(commandLine);
-    }
 }
 
-int suggestionTool(const char *input, int isTabPressed) {
-    strcpy_custom(suggestionBuffer, input);
-    for (int i = 0; i < 5; i++) {
-        if (strncmp_custom(commands[i], suggestionBuffer, getLength(suggestionBuffer)) == 0) { // check if the string is mentioned
-            // commandIndex = getLength(commands[i]);
-            strcpy_custom(suggestionBuffer, commands[i]);
-            suggestionLenght = getLength(suggestionBuffer);
-            uart_puts(suggestionBuffer);
-            // found = 1;
-            return 0;
+void findHelpCommand() {
+    // for help command
+        // key value: tab:1 - index 0
+        if(helpTabPressed == 1) {
+            helpIndex = find_string_index(help, commandLine);
+        } else {
+            helpIndex++;
         }
-    }
-    // found = 0;
+        clearCommandLineBuffer();
+        strcpy_custom(commandLine, get_string_by_index(help, helpIndex)); // error here
+        if(helpIndex > getSizeHelp() - 1) {
+            helpIndex = 0;
+        }
+        commandIndex = getLength(commandLine);
+        uart_puts(commandLine);
+        
 }
+
 
 int getBoardRevision(void) {
      // mailbox data buffer: Read ARM frequency

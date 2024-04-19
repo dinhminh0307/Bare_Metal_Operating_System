@@ -1,6 +1,7 @@
 #include "./system.h"
-const char *commands[5] = {"help", "clear", "setcolor -t", "setcolor -b", "showinfo"};
+const char *commands[5] = {"help", "clear", "setcolor", "showinfo"};
 const char *help[3] = {"help clear", "help setcolor", "help showinfo"};
+
 #define HELP_SIZE sizeof(help) / sizeof(help[0])
 int numberCommands[5];
 int currentIndex = 0;
@@ -189,9 +190,10 @@ int find_string_index(char *stack[COMMAND_LINE_SIZE], char *target) {
 }
 
 char *get_string_by_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index) {
-    if (index >= 0 && index < COMMAND_LINE_SIZE) {
+    if (index >= 0 && index < getSizeHelp()) {
         return help[index];  // Return the address of the string at the given index
-    } else {
-        return "Del co";  // Return NULL if the index is out of bounds
+    } else if(index > getSizeHelp() - 1) {
+        index = 0;
+        return help[0];  // Return NULL if the index is out of bounds
     }
 }
