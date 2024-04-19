@@ -7,10 +7,14 @@ int commandIndex = 0; // Index to keep track of the current position in commandL
 char commandBuffer[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE] = {0};
 volatile int numberOfPlusPresses = 0;
 volatile int numberOfMinusPresses = 0;
+
 char *textColor;
 char *backGroundColor;
+
+// flag for auto complete proccess
 volatile int isTabPressed = 0;
-volatile int found = 0;
+volatile int helpTabPressed;
+volatile int isHelpFound = 0;
 
 // Utility function to reset the commandLine buffer
 void resetCommandLine() {
@@ -219,6 +223,7 @@ void deleteChar() {
         }
         if(commandIndex == 0) {
             commandLine[commandIndex] = '\0'; // Null-terminate the
+            isHelpFound = 0;
         }
 }
 
@@ -248,34 +253,23 @@ int checkIsTheCommand(char *input) {
     return 0;
 }
 
-void onTabPress(char c) {
-     // Send back the character (echo), if the command line is fully deleted and people backspace, it is not allowed
-    if(c != '\t' && c != '+' && c != '_') {
-        // if(checkIsTheCommand(commandLine) == 0) {
-        //     while(suggestionLenght > 2) {
-        //         uart_backspace();
-        //         suggestionLenght--;
-        //     }
-        // } else {
-        //     while(suggestionLenght > 1) {
-        //         uart_backspace();
-        //         suggestionLenght--;
-        //     }
-        // }
-        
-        // suggestionTool(commandLine, 0);
-        // clearSuggestionbuffer(); // clear the buffer everytime i type
-        // if(found == 0) {
-        //     uart_sendc(c); // avoid corruption
-        // }
-        uart_sendc(c); // avoid corruption
-    } else if(c == '\t') {
-        while(commandIndex > 0) {
+void clearCommandLineBuffer() {
+    while(commandIndex > 0) {
             uart_backspace();
             commandIndex--;
         }
+}
+
+void onTabPress(char c) {
+     // Send back the character (echo), if the command line is fully deleted and people backspace, it is not allowed
+    if(c != '\t' && c != '+' && c != '_') {
+        uart_sendc(c); // avoid corruption
+    } else if(c == '\t') {
+        clearCommandLineBuffer();
+        if(compare(commandLine, "help ")) {
+            isHelpFound = 1;
+        }
         autocomplete(commandLine);
-        isTabPressed = 0;
     }
 }
 
@@ -290,6 +284,9 @@ void onEnterPress(char c) {
         numberOfPlusPresses = 0;
         numberOfMinusPresses = 0;
         currentIndex = 0;
+        suggestionLenght = 0;
+        isTabPressed = 0;
+        isHelpFound = 0; // clear flag
     }
 }
 
@@ -347,13 +344,30 @@ void clearCommand(void) {
 
 void autocomplete(const char *input) {
     int found = 0;
-    for (int i = 0; i < 5; i++) {
-        if (strncmp_custom(commands[i], input, getLength(input)) == 0) { // check if the string is mentioned
-            commandIndex = getLength(commands[i]);
-            strcpy_custom(commandLine, commands[i]);
-            uart_puts(commandLine);
-            found = 1;
+    if(isHelpFound == 0) {
+        for (int i = 0; i < 5; i++) {
+            if (strncmp_custom(commands[i], input, getLength(input)) == 0) { // check if the string is mentioned
+                commandIndex = getLength(commands[i]);
+                strcpy_custom(commandLine, commands[i]);
+                uart_puts(commandLine);
+                found = 1;
+            }
         }
+    }
+    // for help command
+    if(isHelpFound == 1) {
+        // for(int i = 0; i < 3; i++) {
+        //     // if (strncmp_custom(help[i], commandLine, getLength(commandLine)) == 0) { // check if the string is mentioned
+        //     //     strcpy_custom(commandLine, help[i]);
+        //     //     commandIndex = getLength(commandLine);
+        //     //     uart_puts(commandLine);
+        //     // }
+            
+        // }
+        int index = find_string_index(help, commandLine);
+        strcpy_custom(commandLine, get_string_by_index(help, index));
+        commandIndex = getLength(commandLine);
+        uart_puts(commandLine);
     }
 }
 
@@ -365,11 +379,11 @@ int suggestionTool(const char *input, int isTabPressed) {
             strcpy_custom(suggestionBuffer, commands[i]);
             suggestionLenght = getLength(suggestionBuffer);
             uart_puts(suggestionBuffer);
-            found = 1;
+            // found = 1;
             return 0;
         }
     }
-    found = 0;
+    // found = 0;
 }
 
 int getBoardRevision(void) {

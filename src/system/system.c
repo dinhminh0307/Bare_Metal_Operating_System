@@ -1,5 +1,7 @@
 #include "./system.h"
 const char *commands[5] = {"help", "clear", "setcolor -t", "setcolor -b", "showinfo"};
+const char *help[3] = {"help clear", "help setcolor", "help showinfo"};
+#define HELP_SIZE sizeof(help) / sizeof(help[0])
 int numberCommands[5];
 int currentIndex = 0;
 int getLength(char *s) {
@@ -82,17 +84,17 @@ char extract_char(char *str, int index) {
 
 int find_char_index(const char *str, char target) {
     if (getLength(str) == 0) {
-        return -1;  // Return -1 if the input string is NULL
+        return -1;  
     }
 
-    int index = 0;  // Initialize index to start from the beginning of the string
+    int index = 0; 
     while (str[index] != '\0') {  // Loop until the end of the string
         if (str[index] == target) {
             return index;  // Return the current index if target is found
         }
-        index++;  // Move to the next character
+        index++;  
     }
-    return -1;  // Return -1 if the target character is not found
+    return -1;  
 }
 
 int get2dArrayLength(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE]) {
@@ -154,4 +156,42 @@ char *returnPeek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int numberOfM
     }
 
     return stack[currentIndex + numberOfMinus];
+}
+
+// Function to concatenate two strings
+void strcat_custom(char *dest, char *src) {
+    // Find the length of the destination string
+    int dest_len = getLength(dest);
+    int i = 0;
+
+    // Copy characters from source to the end of destination
+    while (src[i] != '\0') {
+        dest[dest_len + i] = src[i];
+        i++;
+    }
+
+    // Null-terminate the concatenated string
+    dest[dest_len + i] = '\0';
+}
+
+int getSizeHelp() {
+    return sizeof(help) / sizeof(help[0]);
+}
+
+int find_string_index(char *stack[COMMAND_LINE_SIZE], char *target) {
+    int length = getSizeHelp();
+    for(int i = 0; i < length; i++) {
+            if (strncmp_custom(stack[i], target, getLength(target)) == 0) { // check if the string is mentioned
+                return i;
+            }
+        }
+    return -1;
+}
+
+char *get_string_by_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index) {
+    if (index >= 0 && index < COMMAND_LINE_SIZE) {
+        return help[index];  // Return the address of the string at the given index
+    } else {
+        return "Del co";  // Return NULL if the index is out of bounds
+    }
 }

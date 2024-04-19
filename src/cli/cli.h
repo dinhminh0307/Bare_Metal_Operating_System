@@ -1,4 +1,4 @@
-#include "../uart/uart.h"
+
 #include "../system/system.h"
 #include "../constant/tag.h"
 #include "../constant/color.h"

@@ -1,3 +1,5 @@
+#include "../uart/uart.h"
+
 #define COMMAND_LINE_SIZE 100
 
 typedef struct {
@@ -8,6 +10,7 @@ typedef struct {
 extern int currentIndex;
 
 extern const char *commands[5];
+extern const char *help[3];
 int compare(char *s, char *target);
 int getLength(char *s);
 int matchCommand(char *s);
@@ -19,3 +22,6 @@ int push(char stack[5][COMMAND_LINE_SIZE], char *element);
 int pushNewLine(char *s, int *index);
 char *peek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index);
 char *returnPeek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int numberOfMinus);
+void strcat_custom(char* dest, char* src);
+int find_string_index(char *stack[COMMAND_LINE_SIZE], char *target);
+char *get_string_by_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index);
