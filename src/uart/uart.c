@@ -175,3 +175,28 @@ void uart_dec(int num)
     str[len] = '\0';
     uart_puts(str);
 }
+
+char *formatMacAdress(unsigned int mac) {
+    char formatted_mac[18];
+    int idx = 17;
+    formatted_mac[idx--] = '\0'; // Null terminator
+    
+    for (int i = 0; i < 6; i++) {
+        // Format each byte starting from the least significant byte
+        unsigned char byte = (mac >> (i * 8)) & 0xFF;
+        
+        // Convert the low nibble to hexadecimal character
+        char low = byte & 0x0F;
+        formatted_mac[idx--] = (low <= 9) ? (low + '0') : (low - 10 + 'A');
+        
+        // Convert the high nibble to hexadecimal character
+        char high = (byte >> 4) & 0x0F;
+        formatted_mac[idx--] = (high <= 9) ? (high + '0') : (high - 10 + 'A');
+        
+        // Insert colon if not at the start
+        if (i < 5) {
+            formatted_mac[idx--] = ':';
+        }
+    }
+    uart_puts(formatted_mac);
+}

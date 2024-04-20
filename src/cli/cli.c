@@ -464,7 +464,7 @@ void display_system_info() {
     uart_puts("| MAC Address            | ");
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
-    uart_hex(getMacAddress());
+    formatMacAdress(getMacAddress());
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
     uart_puts("                         |\n"); // Adjust spaces based on expected length of MAC address
