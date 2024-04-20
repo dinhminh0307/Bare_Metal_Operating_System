@@ -2,6 +2,7 @@
     "files.associations": {
         "mailbox.h": "c",
         "cstdarg": "cpp",
-        "cstdio": "cpp"
+        "cstdio": "cpp",
+        "system.h": "c"
     }
 }

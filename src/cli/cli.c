@@ -9,18 +9,22 @@ volatile int numberOfPlusPresses = 0;
 volatile int numberOfMinusPresses = 0;
 int helpIndex;
 int setColorIndex;
+int tabIndex;
 
 char *textColor;
 char *backGroundColor;
 
 // flag for auto complete proccess
-volatile int isTabPressed = 0;
 volatile int helpTabPressed = 0;
 volatile int isHelpFound = 0;
 
 // flag for setcolor auto completion
 volatile int isSetColorPressed = 0;
 volatile int setColorTabPressed = 0;
+
+//flag for command auto completion
+volatile int isTabPressed = 0;
+
 
 // Utility function to reset the commandLine buffer
 void resetCommandLine() {
@@ -257,11 +261,13 @@ void clearCommandLineBuffer() {
         }
 }
 
+
 void onTabPress(char c) {
      // Send back the character (echo), if the command line is fully deleted and people backspace, it is not allowed
     if(c != '\t' && c != '+' && c != '_') {
         uart_sendc(c); // avoid corruption
     } else if(c == '\t') {
+        isTabPressed++;
         clearCommandLineBuffer(); // clear the old cmd when press tab
         if(strncmp_custom(commandLine, "help ", 5) == 0) {
             helpTabPressed++;
@@ -269,8 +275,9 @@ void onTabPress(char c) {
         } else if(strncmp_custom(commandLine, "setcolor ", 9) == 0) {
             setColorTabPressed++; 
             find_set_color_command();
+        } else {
+            autocomplete(commandLine);
         }
-        autocomplete(commandLine);
     }
 }
 
@@ -287,10 +294,15 @@ void onEnterPress(char c) {
         currentIndex = 0;
         isTabPressed = 0;
         helpTabPressed = 0; // clear flag
+        setColorTabPressed = 0;
+        isSetColorPressed = 0;
+        setColorIndex = 0;
+        helpIndex = 0;
+        tabIndex = 0;
     }
 }
 
-void onPlusPress(char c) {
+void onPlusPress(char c) { // some error here
     if(c == '+') {
         numberOfPlusPresses++;
         int len = getLength(commandLine);
@@ -343,17 +355,18 @@ void clearCommand(void) {
   hit enter again to send the command */
 
 void autocomplete(const char *input) {
-    int found = 0;
-    if(isHelpFound == 0) {
-        for (int i = 0; i < 4; i++) {
-            if (strncmp_custom(commands[i], input, getLength(input)) == 0) { // check if the string is mentioned
-                commandIndex = getLength(commands[i]);
-                strcpy_custom(commandLine, commands[i]);
-                uart_puts(commandLine);
-                found = 1;
-            }
+        if(isTabPressed == 1) {
+            tabIndex = find_string_index(commands, commandLine);
+        } else {
+            tabIndex++;
         }
-    }
+        clearCommandLineBuffer();
+        strcpy_custom(commandLine, get_string_index(commands, tabIndex)); // error here
+        if(tabIndex > 3) {
+            tabIndex = 0;
+        }
+        commandIndex = getLength(commandLine);
+        uart_puts(commandLine);
 }
 
 void find_set_color_command() {

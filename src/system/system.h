@@ -32,3 +32,5 @@ int getSizeHelp();
 char *get_set_color_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index);
 int find_set_color_index(char *stack[COMMAND_LINE_SIZE], char *target);
 int getSizeSetColor();
+int find_string_index(char *stack[COMMAND_LINE_SIZE], char *target);
+char *get_string_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index);

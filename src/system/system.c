@@ -162,18 +162,20 @@ char *returnPeek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int numberOfM
 
 // Function to concatenate two strings
 void strcat_custom(char *dest, char *src) {
-    // Find the length of the destination string
-    int dest_len = getLength(dest);
-    int i = 0;
-
-    // Copy characters from source to the end of destination
-    while (src[i] != '\0') {
-        dest[dest_len + i] = src[i];
-        i++;
+    // Move to the end of the destination string
+    while (*dest != '\0') {
+        dest++;
     }
-
-    // Null-terminate the concatenated string
-    dest[dest_len + i] = '\0';
+    
+    // Copy characters from the source string to the end of the destination string
+    while (*src != '\0') {
+        *dest = *src;
+        dest++;
+        src++;
+    }
+    
+    // Null-terminate the resulting string
+    *dest = '\0';
 }
 
 int getSizeHelp() {
@@ -219,5 +221,23 @@ char *get_set_color_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int 
     } else if(index > getSizeSetColor() - 1) {
         index = 0;
         return setcolor[0];  // Return NULL if the index is out of bounds
+    }
+}
+
+int find_string_index(char *stack[COMMAND_LINE_SIZE], char *target) {
+    for(int i = 0; i < 4; i++) {
+            if (strncmp_custom(stack[i], target, getLength(target)) == 0) { // check if the string is mentioned
+                return i;
+            }
+        }
+    return -1;
+}
+
+char *get_string_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index) {
+    if (index >= 0 && index < 4) {
+        return commands[index];  // Return the address of the string at the given index
+    } else if(index > 3) {
+        index = 0;
+        return commands[0];  // Return NULL if the index is out of bounds
     }
 }
