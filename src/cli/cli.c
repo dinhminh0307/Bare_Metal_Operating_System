@@ -10,6 +10,7 @@ volatile int numberOfMinusPresses = 0;
 int helpIndex;
 int setColorIndex;
 int tabIndex;
+int found = 0;
 
 char *textColor;
 char *backGroundColor;
@@ -235,6 +236,7 @@ void deleteChar() {
             commandLine[commandIndex] = '\0'; // Null-terminate the
             isHelpFound = 0;
         }
+        found = 0;
 }
 
 void inputChar(char c) {
@@ -354,19 +356,37 @@ void clearCommand(void) {
   after user press tab, it will suggest other as well and if user hit enter, it will select
   hit enter again to send the command */
 
+//this function used to avoid overlap of autocompletion function
+void getCompleteCommand(char *input) {
+    for (int i = 0; i < 5; i++) {
+                if (strncmp_custom(commands[i], input, getLength(input)) == 0) { // check if the string is mentioned
+                    commandIndex = getLength(commands[i]);
+                    for(int j = 0; j < getLength(commands[i]); j++) {
+                        commandLine[j] = commands[i][j];
+                    }
+                    uart_puts(commandLine);
+                    found = 1;
+                }
+    }
+}
+
 void autocomplete(const char *input) {
-        if(isTabPressed == 1) {
-            tabIndex = find_string_index(commands, commandLine);
+        if(found == 0) {
+            getCompleteCommand(input);
         } else {
-            tabIndex++;
+            if(isTabPressed == 1) {
+            tabIndex = find_string_index(commands, commandLine);
+            } else {
+                tabIndex++;
+            }
+            clearCommandLineBuffer();
+            strcpy_custom(commandLine, get_string_index(commands, tabIndex)); // error here
+            if(tabIndex > 3) {
+                tabIndex = 0;
+            }
+            commandIndex = getLength(commandLine);
+            uart_puts(commandLine);
         }
-        clearCommandLineBuffer();
-        strcpy_custom(commandLine, get_string_index(commands, tabIndex)); // error here
-        if(tabIndex > 3) {
-            tabIndex = 0;
-        }
-        commandIndex = getLength(commandLine);
-        uart_puts(commandLine);
 }
 
 void find_set_color_command() {
