@@ -12,6 +12,9 @@ int setColorIndex;
 int tabIndex;
 int found = 0;
 
+// flag for exercise 2
+volatile int isSetUpSelected = 0;
+
 char *textColor;
 char *backGroundColor;
 
@@ -108,6 +111,26 @@ void printSetColorCommand(void) {
     printOS();
 }
 
+void printSetUpCommand(void) {
+    uart_puts(backGroundColor);  // Set background color
+    uart_puts(textColor);        // Set text color
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
+    uart_puts(backGroundColor);  // Set background colorRESET_COLOR
+    uart_puts(textColor);        // Set text colorRESET_COLOR
+    uart_puts("| 5  | setup        | - This command will let user to setup the PLL01 UART    |\n");
+    uart_puts(backGroundColor);  // Set background colorRESET_COLOR
+    uart_puts(textColor);        // Set text colorRESET_COLOR
+    uart_puts("|    |              |                                                         |\n");
+    uart_puts(backGroundColor);  // Set background colorRESET_COLOR
+    uart_puts(textColor);        // Set text colorRESET_COLOR
+    uart_puts("|    |              |                                                         |\n");
+    uart_puts(backGroundColor);  // Set background colorRESET_COLOR
+    uart_puts(textColor);        // Set text colorRESET_COLOR
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
+    
+    printOS();
+}
+
 void printShowCommand(void) {
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
@@ -198,6 +221,18 @@ void printMenu() {
     uart_puts(backGroundColor);  // Set background color
     uart_puts(textColor);        // Set text color
     uart_puts("+----+--------------+---------------------------------------------------------+\n");
+    uart_puts(backGroundColor);  // Set background colorRESET_COLOR
+    uart_puts(textColor);        // Set text colorRESET_COLOR
+    uart_puts("| 5  | setup        | - This command will let user to setup the PLL01 UART    |\n");
+    uart_puts(backGroundColor);  // Set background colorRESET_COLOR
+    uart_puts(textColor);        // Set text colorRESET_COLOR
+    uart_puts("|    |              |                                                         |\n");
+    uart_puts(backGroundColor);  // Set background colorRESET_COLOR
+    uart_puts(textColor);        // Set text colorRESET_COLOR
+    uart_puts("|    |              |                                                         |\n");
+    uart_puts(backGroundColor);  // Set background colorRESET_COLOR
+    uart_puts(textColor);        // Set text colorRESET_COLOR
+    uart_puts("+----+--------------+---------------------------------------------------------+\n");
     printOS();
 }
 
@@ -220,6 +255,10 @@ void selectFunction(char *s) {
     } else if(matchCommand(s) == 8) {
         returnBackGroundColor(s);
         printOS();
+    } else if(matchCommand(s) == 9 ) {
+
+    } else if(matchCommand(s) == 10) {
+        printSetUpCommand();
     } else  {
         printOS(); // Print the prompt again for a new command
     }
@@ -381,7 +420,7 @@ void autocomplete(const char *input) {
             }
             clearCommandLineBuffer();
             strcpy_custom(commandLine, get_string_index(commands, tabIndex)); // error here
-            if(tabIndex > 3) {
+            if(tabIndex > 4) {
                 tabIndex = 0;
             }
             commandIndex = getLength(commandLine);

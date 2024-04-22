@@ -11,7 +11,7 @@ typedef struct {
 extern int currentIndex;
 
 extern const char *commands[5];
-extern const char *help[3];
+extern const char *help[4];
 extern const char *setcolor[2];
 
 int compare(char *s, char *target);

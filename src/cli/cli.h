@@ -4,6 +4,7 @@
 #include "../constant/color.h"
 
 //Variables declaration
+extern volatile int isSetUpSelected;
 
 void debugTool();
 

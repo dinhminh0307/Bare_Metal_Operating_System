@@ -1,6 +1,6 @@
 #include "./system.h"
-const char *commands[5] = {"help", "clear", "setcolor", "showinfo"};
-const char *help[3] = {"help clear", "help setcolor", "help showinfo"};
+const char *commands[5] = {"help", "clear", "setcolor", "showinfo", "boot"};
+const char *help[4] = {"help clear", "help setcolor", "help showinfo", "help boot"};
 const char *setcolor[2] = {"setcolor -t", "setcolor -b"};
 
 #define HELP_SIZE sizeof(help) / sizeof(help[0])
@@ -61,7 +61,11 @@ int matchCommand(char *s) {
         return 5;
     } else if(compare(s, "showinfo\n")) {
         return 6;
-    } 
+    } else if(compare(s, "boot\n")) {
+        return 9;
+    } else if(compare(s, "help boot\n")) {
+        return 10;
+    }
 
     if(strncmp_custom(s, "setcolor -t ", 12) == 0) {
         return 7;
@@ -186,6 +190,10 @@ int getSizeSetColor() {
     return sizeof(setcolor) / sizeof(setcolor[0]);
 }
 
+int getSizeCommand() {
+    return sizeof(commands) / sizeof(commands[0]);
+}
+
 int find_set_color_index(char *stack[COMMAND_LINE_SIZE], char *target) {
     int length = getSizeSetColor();
     for(int i = 0; i < length; i++) {
@@ -225,7 +233,7 @@ char *get_set_color_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int 
 }
 
 int find_string_index(char *stack[COMMAND_LINE_SIZE], char *target) {
-    for(int i = 0; i < 4; i++) {
+    for(int i = 0; i < getSizeCommand(); i++) {
             if (strncmp_custom(stack[i], target, getLength(target)) == 0) { // check if the string is mentioned
                 return i;
             }
@@ -234,9 +242,9 @@ int find_string_index(char *stack[COMMAND_LINE_SIZE], char *target) {
 }
 
 char *get_string_index(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index) {
-    if (index >= 0 && index < 4) {
+    if (index >= 0 && index < getSizeCommand()) {
         return commands[index];  // Return the address of the string at the given index
-    } else if(index > 3) {
+    } else if(index > getSizeCommand() - 1) {
         index = 0;
         return commands[0];  // Return NULL if the index is out of bounds
     }
