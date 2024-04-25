@@ -19,7 +19,7 @@ all: clean uart_build mailbox_build system_build cli_build kernel8.img minh
 
 ./build/%.o: ./src/%.c #present all o and c
 #this will compile all dependencies of the .o target to the full target name
-	aarch64-none-elf-gcc $(GCCFLAGS) -c $< -o $@ > NUL 2>&1
+	aarch64-none-elf-gcc $(GCCFLAGS) -c $< -o $@ 
 
 uart_build: ./src/uart/uart.c
 	aarch64-none-elf-gcc $(GCCFLAGS) -c ./src/uart/uart.c -o ./build/uart.o 

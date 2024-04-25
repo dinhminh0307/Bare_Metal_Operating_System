@@ -1,5 +1,13 @@
 #include "./uart.h"
+int custom_baudrate = 0;
+int custom_data_bit = 0;
+int custom_stop_bit = 1;
+char parity_bit[100];
+char hand_shaking[100];
 
+void uart_setup() {
+
+}
 
 void uart_init()
 {

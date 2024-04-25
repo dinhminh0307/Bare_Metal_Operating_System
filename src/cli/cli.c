@@ -1,7 +1,11 @@
 #include "./cli.h"
 
 char commandLine[COMMAND_LINE_SIZE]; // Fixed-size array for the command line
+char set_up_buffer[COMMAND_LINE_SIZE];
 char suggestionBuffer[COMMAND_LINE_SIZE];
+
+int set_up_index = 0;
+
 int suggestionLenght;
 int commandIndex = 0; // Index to keep track of the current position in commandLine
 char commandBuffer[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE] = {0};
@@ -11,6 +15,10 @@ int helpIndex;
 int setColorIndex;
 int tabIndex;
 int found = 0;
+
+// flag for baud rate setup
+volatile int isBaudRateChoose = 0;
+volatile int isDataFrameChoose = 0;
 
 // flag for exercise 2
 volatile int isSetUpSelected = 0;
@@ -237,30 +245,38 @@ void printMenu() {
 }
 
 void selectFunction(char *s) {
-    if(matchCommand(s) == 1) {
-        printMenu();
-    }else if(matchCommand(s) == 2) {
-        printClearInfor();
-    } else if(matchCommand(s) == 3) {
-        printSetColorCommand();
-    } else if(matchCommand(s) == 4) {
-        printShowCommand();
-    } else if(matchCommand(s) == 5) {
-        clearCommand();
-    } else if(matchCommand(s) == 6) {
-        display_system_info();
-    } else if(matchCommand(s) == 7) {
-        returnTextColor(s);
-        printOS();
-    } else if(matchCommand(s) == 8) {
-        returnBackGroundColor(s);
-        printOS();
-    } else if(matchCommand(s) == 9 ) {
-
-    } else if(matchCommand(s) == 10) {
-        printSetUpCommand();
-    } else  {
-        printOS(); // Print the prompt again for a new command
+    if(isSetUpSelected == 0) {
+        if(matchCommand(s) == 1) {
+            printMenu();
+        }else if(matchCommand(s) == 2) {
+            printClearInfor();
+        } else if(matchCommand(s) == 3) {
+            printSetColorCommand();
+        } else if(matchCommand(s) == 4) {
+            printShowCommand();
+        } else if(matchCommand(s) == 5) {
+            clearCommand();
+        } else if(matchCommand(s) == 6) {
+            display_system_info();
+        } else if(matchCommand(s) == 7) {
+            returnTextColor(s);
+            printOS();
+        } else if(matchCommand(s) == 8) {
+            returnBackGroundColor(s);
+            printOS();
+        } else if(matchCommand(s) == 9 ) {
+            isSetUpSelected = 1;
+            askBaudRate();
+        } else if(matchCommand(s) == 10) {
+            printSetUpCommand();
+        } else  {
+            printOS(); // Print the prompt again for a new command
+        }
+    } else {
+        uart_puts("setup the data bits: \n");
+        if(isSetUpSelected == 2) {
+            
+        }
     }
 }
 
@@ -276,6 +292,71 @@ void deleteChar() {
             isHelpFound = 0;
         }
         found = 0;
+}
+
+void resetSetUpBuffer() {
+    for (int i = 0; i < COMMAND_LINE_SIZE; i++) {
+        set_up_buffer[i] = '\0';
+    }
+    set_up_index = 0;
+}
+
+void set_up_type(char c) {
+    if(c != 0x08 && c!= '\n') {
+        if (set_up_index < COMMAND_LINE_SIZE - 1) {
+        set_up_buffer[set_up_index] = c; // Add the character to commandLine and increment index
+        set_up_index++;
+        set_up_buffer[set_up_index] = '\0'; // Null-terminate the string
+        } else {
+        // Handle overflow, for example, by resetting the command line
+        resetSetUpBuffer();
+        uart_puts(RED_COLOR"\nIndex out of length for your command\n"RESET_COLOR);
+        // printOS();
+        }
+    } else if(c == 0x08) {
+        deleteChar();
+    } else if(c == '\n') { // check if the uart setup is entered
+        if(isSetUpSelected == 1) {
+            int index = find_char_index(set_up_buffer, '\n');
+            extract_char(set_up_buffer, index);
+            custom_baudrate = stringToInt(set_up_buffer);
+            resetSetUpBuffer();
+            isSetUpSelected++;
+            uart_puts("\nPlease enter data bits:\n");
+        } else if(isSetUpSelected == 2) {
+            // used for data bit
+            int index = find_char_index(set_up_buffer, '\n');
+            extract_char(set_up_buffer, index);
+            custom_data_bit = stringToInt(set_up_buffer);
+            resetSetUpBuffer();
+            isSetUpSelected++;
+            uart_puts("\nPlease enter stop bit:\n");
+        } else if(isSetUpSelected == 3) {
+            // used for stop bit
+            int index = find_char_index(set_up_buffer, '\n');
+            extract_char(set_up_buffer, index);
+            custom_stop_bit = stringToInt(set_up_buffer);
+            resetSetUpBuffer();
+            isSetUpSelected++;
+            uart_puts("\nEnter parity bit:\n");
+        } else if(isSetUpSelected == 4) {
+            // set a while to check the valid input
+            int index = find_char_index(set_up_buffer, '\n');
+            extract_char(set_up_buffer, index);
+            strcpy_custom(parity_bit, set_up_buffer);
+            resetSetUpBuffer();
+            isSetUpSelected++;
+            uart_puts("\nSelect handshaking control: \n");
+        } else if(isSetUpSelected == 5) {
+            // set a while to check the valid input
+            int index = find_char_index(set_up_buffer, '\n');
+            extract_char(set_up_buffer, index);
+            strcpy_custom(hand_shaking, set_up_buffer);
+            resetSetUpBuffer();
+            isSetUpSelected = 0;
+        }
+    }
+    uart_sendc(c); // bug here
 }
 
 void inputChar(char c) {
@@ -322,24 +403,25 @@ void onTabPress(char c) {
     }
 }
 
+
 void onEnterPress(char c) {
     // Check for the 'Enter' key 
     if (c == '\n') {
-        selectFunction(commandLine);
-        int index = find_char_index(commandLine, '\n');
-        extract_char(commandLine, index);
-        push(commandBuffer, commandLine);
-        resetCommandLine();
-        numberOfPlusPresses = 0;
-        numberOfMinusPresses = 0;
-        currentIndex = 0;
-        isTabPressed = 0;
-        helpTabPressed = 0; // clear flag
-        setColorTabPressed = 0;
-        isSetColorPressed = 0;
-        setColorIndex = 0;
-        helpIndex = 0;
-        tabIndex = 0;
+            selectFunction(commandLine);
+            int index = find_char_index(commandLine, '\n');
+            extract_char(commandLine, index);
+            push(commandBuffer, commandLine);
+            resetCommandLine();
+            numberOfPlusPresses = 0;
+            numberOfMinusPresses = 0;
+            currentIndex = 0;
+            isTabPressed = 0;
+            helpTabPressed = 0; // clear flag
+            setColorTabPressed = 0;
+            isSetColorPressed = 0;
+            setColorIndex = 0;
+            helpIndex = 0;
+            tabIndex = 0;
     }
 }
 
@@ -376,13 +458,29 @@ void onMinusPress(char c) {
 }
 
 int typeCommand() {
-    // Read each char
-    char c = uart_getc();
-    inputChar(c);
-    onTabPress(c);
-    onEnterPress(c);
-    onPlusPress(c);
-    onMinusPress(c);
+    // if(isSetUpSelected) {
+    //     set_up_type(c);
+    // } else {
+    //     inputChar(c);
+    //     onTabPress(c);
+    //     onEnterPress(c);
+    //     onPlusPress(c);
+    //     onMinusPress(c);
+    // }
+    
+    while(isSetUpSelected > 0) {
+        char c = uart_getc();
+        set_up_type(c);
+    }
+    if(isSetUpSelected == 0) { // avoid corruption
+        // Read each char
+        char c = uart_getc();
+        inputChar(c);
+        onTabPress(c);
+        onEnterPress(c);
+        onPlusPress(c);
+        onMinusPress(c);
+    }
     return 0;
 }
 
@@ -610,3 +708,25 @@ char *returnBackGroundColor(char *input) {
         }
     }
 }
+
+void askBaudRate(void) {
+    uart_puts("Please enter the baud rate you want:\n");
+        // if(isSetUpSelected == 1) {
+        //     custom_baudrate = stringToInt(set_up_buffer);
+        //     resetSetUpBuffer();
+        //     isSetUpSelected++;
+        // } else if(isSetUpSelected == 2) {
+        //     // used for data bit
+        //     custom_data_bit = stringToInt(set_up_buffer);
+        //     resetSetUpBuffer();
+        //     isSetUpSelected++;
+        // } else if(isSetUpSelected == 3) {
+        //     // used for stop bit
+        //     custom_stop_bit = stringToInt(set_up_buffer);
+        //     resetSetUpBuffer();
+        //     isSetUpSelected++;
+        // } else if(isSetUpSelected == 4) {
+
+        // }
+}
+

@@ -75,6 +75,31 @@ int matchCommand(char *s) {
     return 0;
 }
 
+int stringToInt(const char *str) {
+    int result = 0;       
+    int sign = 1;         
+
+    // Check if there is a minus sign at the beginning of the string
+    if (*str == '-') {
+        sign = -1;
+        str++;            
+    }
+
+   
+    while (*str != '\0') {
+        
+        if (*str >= '0' && *str <= '9') {
+            result = result * 10 + (*str - '0');  
+        } else {
+            // If the character is not a digit, return 0 or handle the error appropriately
+            return 0;
+        }
+        str++; 
+    }
+
+    return result * sign; 
+}
+
 char extract_char(char *str, int index) {
     if (getLength(str) == 0) {
         return '\0';  
