@@ -14,6 +14,11 @@ extern int custom_data_bit;
 extern int custom_stop_bit;
 extern int parity_bit;
 extern char hand_shaking[100];
+
+
+// check uart setup flag
+extern volatile int isUartSetUp;
+
 /* Function prototypes */
 void uart_init();
 void uart_sendc(char c);

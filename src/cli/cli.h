@@ -7,7 +7,7 @@ extern volatile int isSetUpSelected;
 
 void debugTool();
 
-void printWelcomeMsg(char *msg);
+void printWelcomeMsg(void);
 void printMenu();
 void printOS(void);
 void selectFunction(char *s);

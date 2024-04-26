@@ -2,7 +2,6 @@
 
 #include "./mailbox/mailbox.h"
 #include "./constant/tag.h"
-#include "./constant/font.h"
 
 
 void view_firmware_revision(void) {
@@ -132,8 +131,11 @@ void main()
 {
     // set up serial console
     uart_init();
-    printWelcomeMsg(hexArray);
+    printWelcomeMsg();
     while(1) {
+        if(isUartSetUp) {
+            uart_setup(); // if user setup the uart, it will reset the old one.
+        }
         typeCommand();
     }
 }

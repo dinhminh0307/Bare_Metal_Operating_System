@@ -5,6 +5,8 @@ int custom_stop_bit = 1;
 int parity_bit;
 char hand_shaking[100];
 
+volatile int isUartSetUp = 0;
+
 /**@brief Function is to setup the uart config
  */
 void uart_setup() {

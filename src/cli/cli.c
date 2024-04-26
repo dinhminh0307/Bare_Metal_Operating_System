@@ -68,8 +68,24 @@ void printOS(void) {
     uart_puts("\nC:/DELL/Minh_OS>");
 }
 
-void printWelcomeMsg(char *msg) {
-    uart_puts(msg);
+void printWelcomeMsg(void) {
+    uart_puts(BRIGHT_YELLOW_COLOR);
+    uart_puts("      :::::::::: :::::::::: :::::::::: ::::::::::: ::::::::   :::     ::::::::   :::::::\n ");
+    uart_puts("     :+:        :+:        :+:            :+:    :+:    :+: :+:     :+:    :+: :+:   :+: \n");
+    uart_puts("    +:+        +:+        +:+            +:+          +:+ +:+ +:+  +:+    +:+ +:+   +:+  \n");
+    uart_puts("   +#++:++#   +#++:++#   +#++:++#       +#+        +#+  +#+  +:+   +#++:++#+ +#+   +:+   \n");
+    uart_puts("  +#+        +#+        +#+            +#+      +#+   +#+#+#+#+#+       +#+ +#+   +#+    \n");
+    uart_puts(" #+#        #+#        #+#            #+#     #+#          #+#  #+#    #+# #+#   #+#     \n");
+    uart_puts("########## ########## ##########     ###    ##########    ###   ########   #######       \n\n");
+    uart_puts("      :::::::::      :::     :::::::::  ::::::::::       ::::::::   ::::::::        \n");
+    uart_puts("     :+:    :+:   :+: :+:   :+:    :+: :+:             :+:    :+: :+:    :+:      \n");
+    uart_puts("    +:+    +:+  +:+   +:+  +:+    +:+ +:+             +:+    +:+ +:+                \n");
+    uart_puts("   +#++:++#+  +#++:++#++: +#++:++#:  +#++:++#        +#+    +:+ +#++:++#++           \n");
+    uart_puts("  +#+    +#+ +#+     +#+ +#+    +#+ +#+             +#+    +#+        +#+          \n");
+    uart_puts(" #+#    #+# #+#     #+# #+#    #+# #+#             #+#    #+# #+#    #+#             \n");
+    uart_puts("#########  ###     ### ###    ### ##########       ########   ########    \n");
+    uart_puts("\nDeveloped by Dinh Ngoc Minh-s3925113");
+    uart_puts(RESET_COLOR);
     printOS();
 }
 
@@ -417,6 +433,7 @@ void set_up_type(char c) {
             check_hand_shaking();
             resetSetUpBuffer();
             isSetUpSelected = 0;
+            isUartSetUp = 1;
             //After this, add a function to recap all change
             uart_setting_notification();
         }
