@@ -132,15 +132,7 @@ void main()
 {
     // set up serial console
     uart_init();
-    // say hello
-    //uart_clock_request();
-    //view_board_revision();
-    //view_firmware_revision();
-    // echo everything back
-    //view_board_model();
     printWelcomeMsg(hexArray);
-    //uart_puts("Hello World\n");
-    //debugTool();
     while(1) {
         typeCommand();
     }

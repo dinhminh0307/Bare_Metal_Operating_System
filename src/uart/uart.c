@@ -2,16 +2,77 @@
 int custom_baudrate = 0;
 int custom_data_bit = 0;
 int custom_stop_bit = 1;
-char parity_bit[100];
+int parity_bit;
 char hand_shaking[100];
 
+/**@brief Function is to setup the uart config
+ */
 void uart_setup() {
+    uint32_t integer_baud, fractional_baud, line_control, control_reg;
 
+    /* Disable UART0 during configuration */
+    UART0_CR = 0x0;
+
+    /* Calculate baud rate divisor */
+    integer_baud = UART_CLOCK / (16 * custom_baudrate);
+    fractional_baud = ((UART_CLOCK % (16 * custom_baudrate)) * 64 + custom_baudrate / 2) / custom_baudrate;
+
+    UART0_IBRD = integer_baud;
+    UART0_FBRD = fractional_baud;
+
+    /* Configure data bits */
+    line_control = 0;
+    switch (custom_data_bit) {
+        case 5:
+            line_control |= UART0_LCRH_WLEN_5BIT;
+            break;
+        case 6:
+            line_control |= UART0_LCRH_WLEN_6BIT;
+            break;
+        case 7:
+            line_control |= UART0_LCRH_WLEN_7BIT;
+            break;
+        case 8:
+            line_control |= UART0_LCRH_WLEN_8BIT;
+            break;
+        default:
+            line_control |= UART0_LCRH_WLEN_8BIT; // Default to 8 bits if invalid
+            break;
+    }
+
+    /* Configure stop bits */
+    if (custom_stop_bit == 2) {
+        line_control |= UART0_LCRH_STP2; // if 2 for 2 stop bits, else for 1
+    }
+
+    /* Configure parity */
+    if (parity_bit == EVEN_PARITY_BIT) {  // Even parity
+        line_control |= (UART0_LCRH_PEN | UART0_LCRH_EPS);
+    } else if (parity_bit == ODD_PARITY_BIT) {  // Odd parity
+        line_control |= UART0_LCRH_PEN;
+    }
+
+    /* Enable FIFO */
+    line_control |= UART0_LCRH_FEN;
+
+    UART0_LCRH = line_control;
+
+    /* Configure hardware flow control (RTS/CTS) */
+    control_reg = UART0_CR_TXE | UART0_CR_RXE; // Enable transmit and receive
+    if (hand_shaking == RTS_CTS_EN) {
+        control_reg |= (UART0_CR_CTSEN	 | UART0_CR_RTSEN);
+    }
+
+    UART0_CR = control_reg;
+
+    /* Mask all interrupts and clear pending ones */
+    UART0_IMSC = 0;
+    UART0_ICR = 0x7FF;
 }
 
 void uart_init()
 {
-      unsigned int r;
+    unsigned int r;
 
 	/* Turn off UART0 */
 	UART0_CR = 0x0;

@@ -167,19 +167,19 @@ int pushNewLine(char *s, int *index) {
 char *peek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index) {
     int length = get2dArrayLength(stack);
     if(index > length) {
-        return '0';
+        return stack[0];
     }
     if(get2dArrayLength(stack) == 0) {
         return '\0';
     }
-    currentIndex = length - index;
-    return stack[length - index];
+    currentIndex = length - index;// 0  1  2  3
+    return stack[length - index]; // 12 23 43 24
 }
 
 char *returnPeek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int numberOfMinus) {
     int length = get2dArrayLength(stack);
-    if(numberOfMinus + currentIndex > length) {
-        return '0';
+    if(numberOfMinus + currentIndex > length - 1) {
+        return stack[length - 1];
     }
 
     if(length == 0) {

@@ -9,6 +9,7 @@ int set_up_index = 0;
 int suggestionLenght;
 int commandIndex = 0; // Index to keep track of the current position in commandLine
 char commandBuffer[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE] = {0};
+char history_buffer[COMMAND_LINE_SIZE];
 volatile int numberOfPlusPresses = 0;
 volatile int numberOfMinusPresses = 0;
 int helpIndex;
@@ -270,7 +271,12 @@ void selectFunction(char *s) {
         } else if(matchCommand(s) == 10) {
             printSetUpCommand();
         } else  {
-            printOS(); // Print the prompt again for a new command
+            if(*s == '\n') {
+                printOS(); // Print the prompt again for a new command
+            } else {
+                uart_puts(RED_COLOR "Invalid command\n" RESET_COLOR);
+                printOS();
+            }
         }
     } else {
         uart_puts("setup the data bits: \n");
@@ -299,6 +305,61 @@ void resetSetUpBuffer() {
         set_up_buffer[i] = '\0';
     }
     set_up_index = 0;
+}
+
+/**@brief Function to check type of parity bit user selectd
+ */
+void check_parity_bit() {
+    if(compare(set_up_buffer, "even")) {
+        parity_bit = EVEN_PARITY_BIT;
+    } else if(compare(set_up_buffer, "odd")) {
+        parity_bit = ODD_PARITY_BIT;
+    } else {
+        parity_bit = DEFAULT;
+    }
+}
+
+/**@brief Function to check the line control of uart
+ */
+void check_hand_shaking() {
+    if(compare(set_up_buffer, "yes")) {
+        parity_bit = RTS_CTS_EN;
+    } else if(compare(set_up_buffer, "odd")) {
+        parity_bit = DEFAULT;
+    } 
+}
+
+void uart_setting_notification(void) {
+    uart_puts("\n================ UART Configuration ================\n");
+    uart_puts("| Setting               | Value      |\n");
+    uart_puts("|-----------------------|------------|\n");
+
+    // Baud Rate
+    uart_puts("| Baud Rate             | ");
+    uart_dec(custom_baudrate);
+    uart_puts("         |\n");
+
+    // Data Bits
+    uart_puts("| Data Bits             | ");
+    uart_dec(custom_data_bit);
+    uart_puts("         |\n");
+
+    // Stop Bits
+    uart_puts("| Stop Bits             | ");
+    uart_dec(custom_stop_bit);
+    uart_puts("         |\n");
+
+    // Parity Bit
+    uart_puts("| Parity Bit            | ");
+    uart_puts(parity_bit);
+    uart_puts("        |\n");
+
+    // Handshaking
+    uart_puts("| Handshaking           | ");
+    uart_puts(hand_shaking);
+    uart_puts("        |\n");
+
+    uart_puts("====================================================\n");
 }
 
 void set_up_type(char c) {
@@ -343,6 +404,7 @@ void set_up_type(char c) {
             // set a while to check the valid input
             int index = find_char_index(set_up_buffer, '\n');
             extract_char(set_up_buffer, index);
+            check_parity_bit();
             strcpy_custom(parity_bit, set_up_buffer);
             resetSetUpBuffer();
             isSetUpSelected++;
@@ -352,8 +414,11 @@ void set_up_type(char c) {
             int index = find_char_index(set_up_buffer, '\n');
             extract_char(set_up_buffer, index);
             strcpy_custom(hand_shaking, set_up_buffer);
+            check_hand_shaking();
             resetSetUpBuffer();
             isSetUpSelected = 0;
+            //After this, add a function to recap all change
+            uart_setting_notification();
         }
     }
     uart_sendc(c); // bug here
@@ -428,6 +493,7 @@ void onEnterPress(char c) {
 void onPlusPress(char c) { // some error here
     if(c == '+') {
         numberOfPlusPresses++;
+        numberOfMinusPresses = 0;
         int len = getLength(commandLine);
         while(len  > 0) {
             uart_backspace(); // error: after press +, the select function does not work
@@ -444,6 +510,7 @@ void onPlusPress(char c) { // some error here
 void onMinusPress(char c) {
     if(c == '_') {
         numberOfMinusPresses++;
+        numberOfPlusPresses = 0;
         int len = getLength(commandLine);
         while(len  > 0) {
             uart_backspace(); // error: after press +, the select function does not work
@@ -458,16 +525,6 @@ void onMinusPress(char c) {
 }
 
 int typeCommand() {
-    // if(isSetUpSelected) {
-    //     set_up_type(c);
-    // } else {
-    //     inputChar(c);
-    //     onTabPress(c);
-    //     onEnterPress(c);
-    //     onPlusPress(c);
-    //     onMinusPress(c);
-    // }
-    
     while(isSetUpSelected > 0) {
         char c = uart_getc();
         set_up_type(c);
@@ -711,22 +768,5 @@ char *returnBackGroundColor(char *input) {
 
 void askBaudRate(void) {
     uart_puts("Please enter the baud rate you want:\n");
-        // if(isSetUpSelected == 1) {
-        //     custom_baudrate = stringToInt(set_up_buffer);
-        //     resetSetUpBuffer();
-        //     isSetUpSelected++;
-        // } else if(isSetUpSelected == 2) {
-        //     // used for data bit
-        //     custom_data_bit = stringToInt(set_up_buffer);
-        //     resetSetUpBuffer();
-        //     isSetUpSelected++;
-        // } else if(isSetUpSelected == 3) {
-        //     // used for stop bit
-        //     custom_stop_bit = stringToInt(set_up_buffer);
-        //     resetSetUpBuffer();
-        //     isSetUpSelected++;
-        // } else if(isSetUpSelected == 4) {
-
-        // }
 }
 
