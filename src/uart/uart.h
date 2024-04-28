@@ -4,8 +4,9 @@
 #define ODD_PARITY_BIT 2
 
 //For line control
-#define RTS_CTS_EN 1
+#define RTS_CTS_EN 3
 #define UART_CLOCK 48000000
+
 
 
 // for uart setup
@@ -13,7 +14,7 @@ extern int custom_baudrate;
 extern int custom_data_bit;
 extern int custom_stop_bit;
 extern int parity_bit;
-extern char hand_shaking[100];
+extern int hand_shaking;
 
 
 // check uart setup flag

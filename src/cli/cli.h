@@ -4,6 +4,9 @@
 
 //Variables declaration
 extern volatile int isSetUpSelected;
+extern volatile int isWelcomeMsgDisp;
+extern char *textColor;
+extern char *backGroundColor;
 
 void debugTool();
 

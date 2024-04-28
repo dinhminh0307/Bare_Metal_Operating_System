@@ -2,19 +2,25 @@
 int custom_baudrate = 0;
 int custom_data_bit = 0;
 int custom_stop_bit = 1;
-int parity_bit;
-char hand_shaking[100];
+int parity_bit= DEFAULT;
+int hand_shaking = DEFAULT;
 
 volatile int isUartSetUp = 0;
+
+void reset_uart(void) {
+    /* Disable UART0 during configuration */
+    UART0_CR = 0x0;
+    UART0_IBRD = 0;
+    UART0_FBRD = 0;
+    UART0_LCRH = 0;
+}
 
 /**@brief Function is to setup the uart config
  */
 void uart_setup() {
     uint32_t integer_baud, fractional_baud, line_control, control_reg;
-
-    /* Disable UART0 during configuration */
-    UART0_CR = 0x0;
-
+    UART0_CR = 0x0; // reset all registers
+    
     /* Calculate baud rate divisor */
     integer_baud = UART_CLOCK / (16 * custom_baudrate);
     fractional_baud = ((UART_CLOCK % (16 * custom_baudrate)) * 64 + custom_baudrate / 2) / custom_baudrate;
@@ -59,13 +65,17 @@ void uart_setup() {
 
     UART0_LCRH = line_control;
 
-    /* Configure hardware flow control (RTS/CTS) */
+   // Assuming control_reg is declared and appropriately scoped
     control_reg = UART0_CR_TXE | UART0_CR_RXE; // Enable transmit and receive
-    if (hand_shaking == RTS_CTS_EN) {
-        control_reg |= (UART0_CR_CTSEN	 | UART0_CR_RTSEN);
-    }
 
+    // Configure hardware flow control (RTS/CTS)
+    // Finalize UART configuration and enable it
+    control_reg = UART0_CR_TXE | UART0_CR_RXE | UART0_CR_UARTEN;
+    if (hand_shaking == RTS_CTS_EN) {
+        control_reg |= (UART0_CR_CTSEN | UART0_CR_RTSEN);
+    }
     UART0_CR = control_reg;
+    // UART0_CR = control_reg;
 
     /* Mask all interrupts and clear pending ones */
     UART0_IMSC = 0;
@@ -125,7 +135,6 @@ void uart_init()
 }
 
 void uart_backspace() {
-    // wait until transmitter is empty bit number 5
      // Wait until transmitter is empty (check if transmit FIFO is empty)
     do {
         asm volatile("nop");

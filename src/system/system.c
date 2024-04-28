@@ -19,18 +19,18 @@ int getLength(char *s) {
 }
 
 char *strcpy_custom(char *dest, const char *src) {
-     while (*src) {          // While the character src points to is not '\0' (not the end of the string)
-        *dest = *src;       // Copy the character from src to dest
-        dest++;             // Move the destination pointer to the next character
-        src++;              // Move the source pointer to the next character
+     while (*src) {          
+        *dest = *src;       
+        dest++;             
+        src++;             
     }
-    *dest = '\0';           // Append '\0' to the end of the string in dest
+    *dest = '\0';           
 }
 
 int strncmp_custom(const char *s1, const char *s2, int n) {
     if (n == 0) return 0;  // If n is zero, no characters are compared, and the function returns 0.
 
-    while (n-- > 1 && *s1 && *s1 == *s2) {
+    while (n-- > 1 && *s1 && *s1 == *s2) { // decrease n and compare s1 and s2
         s1++;
         s2++;
     }
@@ -172,8 +172,8 @@ char *peek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int index) {
     if(get2dArrayLength(stack) == 0) {
         return '\0';
     }
-    currentIndex = length - index;// 0  1  2  3
-    return stack[length - index]; // 12 23 43 24
+    currentIndex = length - index;// current index of the history
+    return stack[length - index]; // return from the last
 }
 
 char *returnPeek(char stack[COMMAND_LINE_SIZE][COMMAND_LINE_SIZE], int numberOfMinus) {
