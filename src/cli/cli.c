@@ -572,7 +572,7 @@ void findHelpCommand() {
 
 int getBoardRevision(void) {
      // mailbox data buffer: Read ARM frequency
-    mBuf[0] = 7*4; // Message Buffer Size in bytes (8 elements * 4 bytes (32 bit) each)
+    mBuf[0] = 7*4; // Message Buffer Size in bytes (7 elements * 4 bytes (32 bit) each)
     mBuf[1] = MBOX_REQUEST; // Message Request Code (this is a request message)
     mBuf[2] = BOARD_REVISION_TAG; // TAG Identifier: Get uart clock command,
     mBuf[3] = 4; // Value buffer size in bytes (max of request and response lengths)
@@ -582,7 +582,7 @@ int getBoardRevision(void) {
     if (mbox_call(ADDR(mBuf), MBOX_CH_PROP)) {
         return mBuf[5];
     } else {
-        return "Can not find data";
+        return 0;
     }
 }
 

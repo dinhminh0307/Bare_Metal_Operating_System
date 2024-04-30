@@ -259,7 +259,7 @@ void uart_dec(int num)
 char *formatMacAdress(unsigned int mac) {
     char formatted_mac[18];
     int idx = 17;
-    formatted_mac[idx--] = '\0'; // Null terminator
+    formatted_mac[idx--] = '\0'; 
     
     for (int i = 0; i < 6; i++) {
         // Format each byte starting from the least significant byte
